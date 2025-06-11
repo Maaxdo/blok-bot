@@ -1,5 +1,3 @@
-const { sendMessage } = require("../../../helpers/webhook/whatsapp");
-
 async function handleMenu(user) {
   const text = `
     Welcome to *STAKE IT*!\n \n
@@ -19,7 +17,7 @@ async function handleMenu(user) {
     /logout - Logout\n
     `;
 
-  await sendMessage(user.phone, text);
+  // await sendMessage(user.phone, text);
 }
 
 module.exports = { handleMenu };

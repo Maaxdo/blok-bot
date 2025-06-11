@@ -1,147 +1,163 @@
-const { WajerAxios } = require("../../../helpers/webhook/wajer");
-const { sendMessage } = require("../../../helpers/webhook/whatsapp");
+const { twilioClient } = require("../../../helpers/webhook/twilio");
+const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 
 async function sendAuthPrompt(user) {
-  const message = `
-    Welcome to *STAKE IT* Whatsaapp bot. Your desired platform to bet on anything! \n
-    Type */login* to login to your account \n
-    Type */register* to register a new account \n
-    `;
-
-  await sendMessage(user.phone, message);
-}
-
-async function handleLoginPrompt(user) {
-  if (user.apiKey) {
-    await sendMessage(
-      user.phone,
-      "You are already logged in. Use the /menu command to view the menu.",
-    );
-    return;
-  }
-
-  const message = `
-    Please enter your username and password in the format: "usermame password"
-    E.g exampleusername ..........
-    `;
-
-  user.state = "/login:auth";
-  await user.save();
-
-  await sendMessage(user.phone, message);
-}
-
-async function handleLoginAuth(user, message) {
-  try {
-    const details = message.split(" ");
-
-    const username = details[0].trim();
-    const password = details[1].trim();
-
-    const response = await WajerAxios({
-      url: "/api/auth/login-user",
-      method: "POST",
-      data: {
-        username,
-        password,
-      },
-    }).then((res) => res.data);
-
-    const userToken = response.token;
-
-    user.apiKey = userToken;
-    user.state = null;
-    await user.save();
-
-    await sendMessage(
-      user.phone,
-      "Logged in successfully! Use the /menu command to view the menu.",
-    );
-  } catch (err) {
-    await sendMessage(
-      user.phone,
-      "Invalid email or password. Please try again.",
-    );
-  }
-}
-
-async function handleLogout(user) {
-  user.apiKey = null;
-  user.state = "/start";
-  await user.save();
-
-  await sendMessage(
-    user.phone,
-    "Logged out successfully! Use the /start command to view start commands",
-  );
+  await twilioClient.messages.create({
+    contentSid: "HX2350295fa85d10898066a9c4c7fc6967",
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+  });
+  // await sendMessage(user.phone, message);
 }
 
 async function handleRegisterPrompt(user) {
-  if (user.apiKey) {
-    await sendMessage(
-      user.phone,
-      "You are already logged in. Use the */logout* command to logout before registering a new account.",
-    );
+  if (user.metadata) {
+    await twilioClient.messages.create({
+      from: process.env.TWILO_FROM,
+      to: `whatsapp:+${user.phone}`,
+      body: "You are already logged in.",
+    });
     return;
   }
 
-  const message = `
-    Please enter your username name, email and password in the format: "username first name last name email password"
-    E.g janeperson Jane Person jane@example.com password
-    `;
-
-  user.state = "/register:auth";
+  user.state = "/register:step-1";
   await user.save();
 
-  await sendMessage(user.phone, message);
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body: "What is your first name?",
+  });
 }
 
-async function handleRegisterAuth(user, message) {
-  try {
-    const details = message.split(" ");
-    const username = details[0].trim();
-    const firstName = details[1].trim();
-    const lastName = details[2].trim();
-    const email = details[3].trim();
-    const password = details[4].trim();
+async function handleRegisterStep1(user, message) {
+  user.state = "/register:step-2";
+  user.metadata = {
+    firstName: message.trim(),
+  };
+  await user.save();
 
-    console.log(username, firstName, lastName, email, password);
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body: "What is your last name?",
+  });
+}
 
-    const response = await WajerAxios({
-      url: "/api/auth/register",
-      method: "POST",
-      data: {
-        firstname: firstName,
-        lastname: lastName,
-        username,
-        email,
-        password,
-        phone: user.phone,
-        phone_code: `+${user.phone.slice(0, 3)}`,
-        password_confirmation: password,
-      },
-    }).then((res) => res.data);
+async function handleRegisterStep2(user, message) {
+  user.state = "/register:step-3";
+  const prevMetadata = JSON.parse(user.metadata);
+  user.metadata = {
+    ...prevMetadata,
+    lastName: message.trim(),
+  };
+  await user.save();
 
-    const userToken = response.token;
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body: "What is your email?",
+  });
+}
 
-    user.apiKey = userToken;
-    user.state = null;
-    await user.save();
+async function handleRegisterStep3(user, message) {
+  user.state = "/register:step-4";
+  const prevMetadata = JSON.parse(user.metadata);
+  user.metadata = {
+    ...prevMetadata,
+    email: message.trim(),
+  };
+  await user.save();
 
-    await sendMessage(
-      user.phone,
-      "Registered in successfully! Use the /menu command to view the menu.",
-    );
-  } catch (err) {
-    await sendMessage(user.phone, err.response.data.message);
-  }
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body: "What password would you like to use?",
+  });
+}
+
+async function handleRegisterStep4(user, message) {
+  user.state = "/register:step-5";
+  const prevMetadata = JSON.parse(user.metadata);
+  user.metadata = {
+    ...prevMetadata,
+    password: message.trim(),
+  };
+  await user.save();
+
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    contentSid: "HX3720d9a58e7cdddd40354438b3d09639",
+    contentVariables: JSON.stringify({
+      1: user.metadata.email,
+      2: user.metadata.firstName,
+      3: user.metadata.lastName,
+      4: user.metadata.password,
+    }),
+  });
+}
+
+async function handleCancel(user, message) {
+  user.metadata = null;
+  user.state = "/start";
+  await user.save();
+
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body: "Registration cancelled!",
+  });
+}
+
+async function handleRegistrationConfirm(user, message) {
+  const metadata = JSON.parse(user.metadata);
+
+  await BlokAxios({
+    url: "/register",
+    method: "POST",
+    data: {
+      code: "string",
+      phone: user.phone,
+      status: "active",
+      email: metadata.email,
+      first_name: metadata.firstName,
+      last_name: metadata.lastName,
+      is_anonymous: false,
+      password: metadata.password,
+    },
+  });
+
+  const res = await BlokAxios({
+    url: "/login",
+    method: "POST",
+    data: {
+      email: metadata.email,
+      password: metadata.password,
+    },
+  }).then((res) => res.data);
+
+  user.metadata = {
+    token: res.access_token,
+    userId: res.user_id,
+  };
+
+  await user.save();
+
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body: "Registration completed! Welcome to Blok",
+  });
 }
 
 module.exports = {
   sendAuthPrompt,
-  handleLoginPrompt,
-  handleLoginAuth,
-  handleLogout,
   handleRegisterPrompt,
-  handleRegisterAuth,
+  handleRegisterStep1,
+  handleRegisterStep2,
+  handleRegisterStep3,
+  handleRegisterStep4,
+  handleCancel,
+  handleRegistrationConfirm,
 };

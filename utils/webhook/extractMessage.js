@@ -1,11 +1,9 @@
-function extractMessage(message) {
-  if (message.type === "text") {
-    return message.text.body;
+function extractMessage(body) {
+  if ("ButtonPayload" in body) {
+    return body.ButtonPayload;
   }
 
-  if (message.type === "interactive") {
-    return message.interactive.list_reply.id;
-  }
+  return body.Body;
 }
 
 module.exports = {

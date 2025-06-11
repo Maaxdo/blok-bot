@@ -18,8 +18,8 @@ module.exports = {
         type: Sequelize.STRING,
         defaultValue: null,
       },
-      apiKey: {
-        type: Sequelize.STRING,
+      metadata: {
+        type: Sequelize.JSON,
         defaultValue: null,
       },
       createdAt: {

@@ -1,7 +1,6 @@
 const { User } = require("../../db/models");
 const { commands } = require("../../utils/webhook/commands");
 const { extractMessage } = require("../../utils/webhook/extractMessage");
-const { logErrorToSlack } = require("../../utils/common/slack");
 
 function handleGetWebhook(req, res) {
   const challenge = req.query["hub.challenge"];
@@ -10,12 +9,12 @@ function handleGetWebhook(req, res) {
 
 async function saveUser(req, res, next) {
   // Disallow any other event apart from message events
-  if (!req.body.entry[0].changes[0].value.messages) {
-    return res.status(200).send("EVENT RECIEVED");
+  if (!req.body.Body) {
+    return res.status(200).send("EVENT RECIEVED: No body");
   }
 
   try {
-    const phone = req.body.entry[0].changes[0].value.messages[0].from;
+    const phone = req.body.WaId;
 
     const user = await User.findOne({
       where: {
@@ -35,7 +34,6 @@ async function saveUser(req, res, next) {
     req.user = newUser;
     return next();
   } catch (err) {
-    logErrorToSlack(err);
     return res.status(200).send("ERROR");
   }
 }
@@ -43,11 +41,11 @@ async function saveUser(req, res, next) {
 async function handlePostWebhook(req, res) {
   try {
     const user = req.user;
-    const message = extractMessage(
-      req.body.entry[0].changes[0].value.messages[0],
-    );
+    const message = extractMessage(req.body);
 
-    const command = commands.find((cmd) => cmd.command === message);
+    const command = commands.find(
+      (cmd) => cmd.command === message || cmd.command === `/${message}`,
+    );
     if (command) {
       await command.function(user, message);
       return res.status(200).send("EVENT_RECEIVED");
@@ -62,7 +60,7 @@ async function handlePostWebhook(req, res) {
 
     return res.status(200).send("EVENT_RECEIVED");
   } catch (err) {
-    await logErrorToSlack(err);
+    console.log(err);
     return res.status(200).send("ERROR");
   }
 }
