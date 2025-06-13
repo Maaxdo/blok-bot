@@ -48,14 +48,12 @@ async function handleGenerateWallet(user, message) {
         pin,
       },
     });
-
-    console.log(type, wallet.id);
   }
 
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    body: "Your wallet has been generated successfully.",
+    body: "Your wallet has been generated successfully. Use /menu to view our services",
   });
 }
 

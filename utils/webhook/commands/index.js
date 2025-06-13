@@ -52,11 +52,11 @@ const commands = [
   },
   {
     command: "/wallet:initiate",
-    function: handleInitiateWalletGeneration,
+    function: auth(handleInitiateWalletGeneration),
   },
   {
     command: "/wallet:generate",
-    function: handleGenerateWallet,
+    function: auth(handleGenerateWallet),
   },
   {
     command: "/menu",
