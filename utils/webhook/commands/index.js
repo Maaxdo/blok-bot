@@ -12,6 +12,10 @@ const {
 
 const { handleMenu } = require("./menu");
 const { auth } = require("../authWrapper");
+const {
+  handleInitiateWalletGeneration,
+  handleGenerateWallet,
+} = require("./wallet");
 
 const commands = [
   {
@@ -45,6 +49,14 @@ const commands = [
   {
     command: "/register:complete",
     function: handleRegistrationConfirm,
+  },
+  {
+    command: "/wallet:initiate",
+    function: handleInitiateWalletGeneration,
+  },
+  {
+    command: "/wallet:generate",
+    function: handleGenerateWallet,
   },
   {
     command: "/menu",

@@ -1,9 +1,10 @@
 const { twilioClient } = require("../../../helpers/webhook/twilio");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
+const { handleInitiateWalletGeneration } = require("./wallet");
 
 async function sendAuthPrompt(user) {
   await twilioClient.messages.create({
-    contentSid: "HX2350295fa85d10898066a9c4c7fc6967",
+    contentSid: "HX65bd9f6bc7ea261b5c809b1a58361d21",
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
   });
@@ -88,7 +89,7 @@ async function handleRegisterStep4(user, message) {
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    contentSid: "HX3720d9a58e7cdddd40354438b3d09639",
+    contentSid: "HX579296f5167a0d7ba5c2edfad5282e9e",
     contentVariables: JSON.stringify({
       1: user.metadata.email,
       2: user.metadata.firstName,
@@ -137,6 +138,7 @@ async function handleRegistrationConfirm(user, message) {
     },
   }).then((res) => res.data);
 
+  user.state = "/wallet:generate";
   user.metadata = {
     token: res.access_token,
     userId: res.user_id,
@@ -147,7 +149,7 @@ async function handleRegistrationConfirm(user, message) {
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    body: "Registration completed! Welcome to Blok",
+    body: "Registration completed! Welcome to Blok\nSend a 4 digit pin for your wallet to be generated.",
   });
 }
 

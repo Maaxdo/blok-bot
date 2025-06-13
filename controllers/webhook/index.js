@@ -60,9 +60,11 @@ async function handlePostWebhook(req, res) {
 
     return res.status(200).send("EVENT_RECEIVED");
   } catch (err) {
-    console.log(err);
-    return res.status(200).send("ERROR");
+    if ("response" in err) console.log(err.response.data);
+    else console.log(err);
   }
+
+  return res.status(200).send("ERROR");
 }
 
 module.exports = {
