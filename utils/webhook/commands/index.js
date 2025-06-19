@@ -5,7 +5,6 @@ const {
   handleRegisterStep2,
   handleRegisterStep3,
   handleRegisterStep4,
-  handleRegisterStep5,
   handleCancel,
   handleRegistrationConfirm,
 } = require("./auth");
@@ -16,6 +15,7 @@ const {
   handleInitiateWalletGeneration,
   handleGenerateWallet,
 } = require("./wallet");
+const { handleStartKyc } = require("./kyc");
 
 const commands = [
   {
@@ -51,6 +51,10 @@ const commands = [
     function: handleRegistrationConfirm,
   },
   {
+    command: "/kyc",
+    function: handleStartKyc,
+  },
+  {
     command: "/wallet:initiate",
     function: auth(handleInitiateWalletGeneration),
   },
@@ -61,6 +65,14 @@ const commands = [
   {
     command: "/menu",
     function: auth(handleMenu),
+  },
+  {
+    command: "/buy",
+    function: auth(() => {}, true),
+  },
+  {
+    command: "/sell",
+    function: auth(() => {}, true),
   },
 ];
 

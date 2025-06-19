@@ -1,6 +1,5 @@
 const { twilioClient } = require("../../../helpers/webhook/twilio");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
-const { handleInitiateWalletGeneration } = require("./wallet");
 
 async function sendAuthPrompt(user) {
   await twilioClient.messages.create({
