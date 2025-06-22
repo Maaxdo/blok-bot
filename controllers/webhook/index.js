@@ -34,6 +34,7 @@ async function saveUser(req, res, next) {
     req.user = newUser;
     return next();
   } catch (err) {
+    console.log(err);
     return res.status(200).send("ERROR");
   }
 }

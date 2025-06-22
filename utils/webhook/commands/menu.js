@@ -5,6 +5,8 @@ async function handleMenu(user) {
     Here's what you can do on Blok:\n
     ✅ Buy Crypto - Type /buy\n
     ✅ Sell Crypto - Type /sell\n
+    ✅ Deposit - Type /deposit\n
+    ✅ Withdraw - Type /withdraw\n
     `;
   await twilioClient.messages.create({
     body,

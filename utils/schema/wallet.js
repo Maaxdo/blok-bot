@@ -6,6 +6,11 @@ const WalletPinSchema = z.object({
   }),
 });
 
+const DepositSchema = z.object({
+  wallet: z.enum(["USDT", "SOL", "BTC", "ETH", "BNB"]),
+});
+
 module.exports = {
   WalletPinSchema,
+  DepositSchema,
 };

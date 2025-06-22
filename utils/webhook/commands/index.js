@@ -14,6 +14,8 @@ const { auth } = require("../authWrapper");
 const {
   handleInitiateWalletGeneration,
   handleGenerateWallet,
+  handleDeposit,
+  handleDepositSelect,
 } = require("./wallet");
 const { handleStartKyc } = require("./kyc");
 
@@ -61,6 +63,14 @@ const commands = [
   {
     command: "/wallet:generate",
     function: auth(handleGenerateWallet),
+  },
+  {
+    command: "/deposit",
+    function: auth(handleDeposit),
+  },
+  {
+    command: "/deposit:select",
+    function: auth(handleDepositSelect),
   },
   {
     command: "/menu",
