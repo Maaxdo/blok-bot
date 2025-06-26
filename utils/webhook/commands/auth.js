@@ -1,12 +1,24 @@
 const { twilioClient } = require("../../../helpers/webhook/twilio");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
+const { handleMenu } = require("./menu");
+const { EmailSchema } = require("../../schema/auth");
 
 async function sendAuthPrompt(user) {
-  await twilioClient.messages.create({
-    contentSid: "HX7877ca5afeb047207cc6b34a08c16a4e",
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-  });
+  const metadata = user.metadata?.userId ? JSON.parse(user.metadata) : null;
+
+  if (!metadata) {
+    await twilioClient.messages.create({
+      contentSid: "HXa0d288888b768b472b3fe7a6f509c5f5",
+      from: process.env.TWILO_FROM,
+      to: `whatsapp:+${user.phone}`,
+    });
+    return;
+  }
+
+  user.state = "/menu";
+  await user.save();
+
+  await handleMenu(user);
 }
 
 async function handleRegisterPrompt(user) {
@@ -62,6 +74,20 @@ async function handleRegisterStep2(user, message) {
 async function handleRegisterStep3(user, message) {
   user.state = "/register:step-4";
   const prevMetadata = JSON.parse(user.metadata);
+
+  const email = message.trim();
+
+  const validate = EmailSchema.safeParse({ email });
+
+  if (!validate.success) {
+    await twilioClient.messages.create({
+      from: process.env.TWILO_FROM,
+      to: `whatsapp:+${user.phone}`,
+      body: "Invalid email address provided",
+    });
+    return;
+  }
+
   user.metadata = {
     ...prevMetadata,
     email: message.trim(),
@@ -151,7 +177,26 @@ async function handleRegistrationConfirm(user, message) {
   });
 }
 
+async function handleViewProfile(user, message) {
+  const metadata = JSON.parse(user.metadata);
+  const profile = await BlokAxios({
+    url: "/profile",
+    params: {
+      user_id: metadata.userId,
+    },
+  }).then((res) => res.data);
+
+  const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status}`;
+
+  await twilioClient.messages.create({
+    from: process.env.TWILO_FROM,
+    to: `whatsapp:+${user.phone}`,
+    body,
+  });
+}
+
 module.exports = {
+  handleViewProfile,
   sendAuthPrompt,
   handleRegisterPrompt,
   handleRegisterStep1,

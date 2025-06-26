@@ -7,6 +7,7 @@ async function handleMenu(user) {
     ✅ Sell Crypto - Type /sell\n
     ✅ Deposit - Type /deposit\n
     ✅ Withdraw - Type /withdraw\n
+    ✅ View your profile - Type /profile\n
     `;
   await twilioClient.messages.create({
     body,

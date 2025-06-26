@@ -35,6 +35,7 @@ async function handleGenerateWallet(user, message) {
       data: {
         wallet_type: type,
         user_id: metadata.userId,
+        network: "ethereum",
       },
     }).then((res) => res.data);
 
@@ -63,17 +64,22 @@ async function handleGenerateWallet(user, message) {
 }
 
 async function handleDeposit(user, message) {
+  // await twilioClient.messages.create({
+  //   from: process.env.TWILO_FROM,
+  //   to: `whatsapp:+${user.phone}`,
+  //   contentSid: "HX0e420989bc7f3733f1f288a9404106ea",
+  //   contentVariables: JSON.stringify({
+  //     1: "USDT",
+  //     2: "SOL",
+  //     3: "BTC",
+  //     4: "ETH",
+  //     5: "BNB",
+  //   }),
+  // });
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    contentSid: "HX0e420989bc7f3733f1f288a9404106ea",
-    contentVariables: JSON.stringify({
-      1: "USDT",
-      2: "SOL",
-      3: "BTC",
-      4: "ETH",
-      5: "BNB",
-    }),
+    body: `Choose from the available wallet options, reply with:\n\nUSDT\nSOL\nBTC\nETH\nBNB`,
   });
 
   user.state = "/deposit:select";
@@ -101,6 +107,8 @@ async function handleDepositSelect(user, message) {
     data: {
       user_id: metadata.userId,
       wallet_type: wallet,
+      logo_url: "string",
+      currency_name: "NGN",
     },
   }).then((res) => res.data);
 

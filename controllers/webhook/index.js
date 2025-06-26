@@ -49,17 +49,17 @@ async function handlePostWebhook(req, res) {
     );
     if (command) {
       await command.function(user, message);
-      return res.status(200).send("EVENT_RECEIVED");
+      return res.status(200).send("EVENT_RECEIVED: Command");
     }
 
     const state = user.state;
     const commandState = commands.find((cmd) => cmd.command === state);
     if (commandState) {
       await commandState.function(user, message);
-      return res.status(200).send("EVENT_RECEIVED");
+      return res.status(200).send("EVENT_RECEIVED: State");
     }
 
-    return res.status(200).send("EVENT_RECEIVED");
+    return res.status(200).send("EVENT_RECEIVED: Done");
   } catch (err) {
     if ("response" in err) console.log(err.response.data);
     else console.log(err);

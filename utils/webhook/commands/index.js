@@ -7,6 +7,7 @@ const {
   handleRegisterStep4,
   handleCancel,
   handleRegistrationConfirm,
+  handleViewProfile,
 } = require("./auth");
 
 const { handleMenu } = require("./menu");
@@ -64,6 +65,10 @@ const commands = [
   {
     command: "/wallet:initiate",
     function: auth(handleInitiateWalletGeneration),
+  },
+  {
+    command: "/profile",
+    function: auth(handleViewProfile),
   },
   {
     command: "/wallet:generate",
