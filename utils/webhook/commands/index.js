@@ -16,6 +16,11 @@ const {
   handleGenerateWallet,
   handleDeposit,
   handleDepositSelect,
+  handleWithdraw,
+  handleWithdrawSelect,
+  handleWithdrawAmount,
+  handleWithdrawAddress,
+  handleWithdrawPin,
 } = require("./wallet");
 const { handleStartKyc } = require("./kyc");
 
@@ -71,6 +76,26 @@ const commands = [
   {
     command: "/deposit:select",
     function: auth(handleDepositSelect),
+  },
+  {
+    command: "/withdraw",
+    function: auth(handleWithdraw),
+  },
+  {
+    command: "/withdraw:select",
+    function: auth(handleWithdrawSelect),
+  },
+  {
+    command: "/withdraw:amount",
+    function: auth(handleWithdrawAmount),
+  },
+  {
+    command: "/withdraw:address",
+    function: auth(handleWithdrawAddress),
+  },
+  {
+    command: "/withdraw:pin",
+    function: auth(handleWithdrawPin),
   },
   {
     command: "/menu",

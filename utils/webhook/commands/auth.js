@@ -3,11 +3,10 @@ const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 
 async function sendAuthPrompt(user) {
   await twilioClient.messages.create({
-    contentSid: "HX2350295fa85d10898066a9c4c7fc6967",
+    contentSid: "HX7877ca5afeb047207cc6b34a08c16a4e",
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
   });
-  // await sendMessage(user.phone, message);
 }
 
 async function handleRegisterPrompt(user) {
@@ -88,7 +87,7 @@ async function handleRegisterStep4(user, message) {
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    contentSid: "HX3720d9a58e7cdddd40354438b3d09639",
+    contentSid: "HX10134adbb73f43d42b4a241235ef3162",
     contentVariables: JSON.stringify({
       1: user.metadata.email,
       2: user.metadata.firstName,

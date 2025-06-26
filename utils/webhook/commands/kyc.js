@@ -17,7 +17,7 @@ async function handleStartKyc(user, message) {
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    contentSid: "HX393396f081b3f6b5e459027ac6894f6d",
+    contentSid: "HXecd78016f4f275743752db84ba1e6002",
     contentVariables: JSON.stringify({
       1: `https://${url}`,
     }),

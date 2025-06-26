@@ -3,7 +3,7 @@
   <component name="BiomeSettings">
     <option name="configPath" value="C:\Users\Mfoniso\config" />
     <option name="configurationMode" value="MANUAL" />
-    <option name="executablePath" value="$PROJECT_DIR$/../../../../Program Files/biome/biome.exe" />
+    <option name="executablePath" value="C:/Program Files/biome/biome.exe" />
     <option name="formatOnSave" value="true" />
   </component>
 </project>
