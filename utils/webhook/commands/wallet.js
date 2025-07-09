@@ -27,7 +27,7 @@ async function handleGenerateWallet(user, message) {
     return;
   }
   const metadata = JSON.parse(user.metadata);
-
+  // TODO: Check whether user has wallet before creating
   for (const type of WALLET_TYPES) {
     const wallet = await BlokAxios({
       url: "/wallet",
