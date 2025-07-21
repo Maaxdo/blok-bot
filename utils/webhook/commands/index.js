@@ -8,6 +8,10 @@ const {
   handleCancel,
   handleRegistrationConfirm,
   handleViewProfile,
+  handleRegisterStep5,
+  handleRegisterStep6,
+  handleLogin,
+  handleLoginConfirm,
 } = require("./auth");
 
 const { handleMenu } = require("./menu");
@@ -23,7 +27,7 @@ const {
   handleWithdrawAddress,
   handleWithdrawPin,
 } = require("./wallet");
-const { handleStartKyc } = require("./kyc");
+const { handleStartKyc, handleKycBVN } = require("./kyc");
 
 const commands = [
   {
@@ -51,6 +55,14 @@ const commands = [
     function: handleRegisterStep4,
   },
   {
+    command: "/register:step-5",
+    function: handleRegisterStep5,
+  },
+  {
+    command: "/register:step-6",
+    function: handleRegisterStep6,
+  },
+  {
     command: "/register:cancel",
     function: handleCancel,
   },
@@ -59,8 +71,20 @@ const commands = [
     function: handleRegistrationConfirm,
   },
   {
+    command: "/login",
+    function: handleLogin,
+  },
+  {
+    command: "/login:confirm",
+    function: handleLoginConfirm,
+  },
+  {
     command: "/kyc",
-    function: handleStartKyc,
+    function: auth(handleStartKyc),
+  },
+  {
+    command: "/kyc:bvn",
+    function: auth(handleKycBVN),
   },
   {
     command: "/wallet:initiate",
@@ -104,7 +128,7 @@ const commands = [
   },
   {
     command: "/menu",
-    function: auth(handleMenu),
+    function: auth(handleMenu, true),
   },
   {
     command: "/buy",

@@ -2,6 +2,8 @@ const { twilioClient } = require("../../../helpers/webhook/twilio");
 const { WalletPinSchema, DepositSchema } = require("../../schema/wallet");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../../constants/wallets");
+const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
+const { infobip } = require("../../../config/app");
 
 async function handleInitiateWalletGeneration(user, message) {
   await twilioClient.messages.create({
@@ -19,10 +21,16 @@ async function handleGenerateWallet(user, message) {
   const validate = WalletPinSchema.safeParse({ pin });
 
   if (!validate.success) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "Invalid pin. Please try again.",
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/text",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          text: "Invalid pin. Please try again.",
+        },
+      },
     });
     return;
   }
@@ -59,7 +67,7 @@ async function handleGenerateWallet(user, message) {
   await twilioClient.messages.create({
     from: process.env.TWILO_FROM,
     to: `whatsapp:+${user.phone}`,
-    body: "Your wallet has been generated successfully. Use /menu to view our services",
+    body: "Your wallet has been generated successfully. Verify your kyc with /kyc",
   });
 }
 
