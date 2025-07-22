@@ -21,4 +21,8 @@ const errorParser = (error) => {
   return DEFAULT_ERROR;
 };
 
-module.exports = { errorParser };
+const zodErrorParser = (validator) => {
+  return validator.error.errors.map((e) => e.message).join("\n");
+};
+
+module.exports = { errorParser, zodErrorParser };

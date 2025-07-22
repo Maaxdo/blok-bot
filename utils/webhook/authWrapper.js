@@ -2,7 +2,7 @@ const { twilioClient } = require("../../helpers/webhook/twilio");
 const { InfoBipAxios } = require("../../helpers/webhook/infobip");
 const { infobip } = require("../../config/app");
 
-function auth(func, checkKyc = false) {
+function auth(func, checkKyc = false, checkWallet = false) {
   return async (user, message) => {
     if (!user.metadata) {
       const textBody = `
@@ -47,7 +47,31 @@ function auth(func, checkKyc = false) {
           },
         },
       });
-
+      return;
+    }
+    if (checkWallet && !metadata.hasWallet) {
+      await InfoBipAxios({
+        url: "/whatsapp/1/message/interactive/buttons",
+        method: "POST",
+        data: {
+          from: infobip.phone,
+          to: user.phone,
+          content: {
+            body: {
+              text: "⚠️ *You have not yet setup your wallet*\n",
+            },
+            action: {
+              buttons: [
+                {
+                  type: "REPLY",
+                  id: "/wallet:initiate",
+                  title: "Create wallet",
+                },
+              ],
+            },
+          },
+        },
+      });
       return;
     }
 

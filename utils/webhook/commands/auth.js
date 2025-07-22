@@ -1,10 +1,10 @@
 const { twilioClient } = require("../../../helpers/webhook/twilio");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
-const { EmailSchema, LoginSchema } = require("../../schema/auth");
+const { LoginSchema, RegisterSchema } = require("../../schema/auth");
 const { handleMenu } = require("./menu");
 const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
-const { errorParser } = require("../../common/errorParser");
+const { errorParser, zodErrorParser } = require("../../common/errorParser");
 
 async function sendAuthPrompt(user) {
   const metadata = user.metadata?.userId ? JSON.parse(user.metadata) : null;
@@ -50,14 +50,20 @@ async function sendAuthPrompt(user) {
 }
 
 async function handleRegisterPrompt(user) {
-  if (user.metadata) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "You are already logged in.",
-    });
-    return;
-  }
+  // if (user.metadata) {
+  //   await InfoBipAxios({
+  //     url: "/whatsapp/1/message/text",
+  //     method: "POST",
+  //     data: {
+  //       from: infobip.phone,
+  //       to: user.phone,
+  //       content: {
+  //         text: "You are already logged in.",
+  //       },
+  //     },
+  //   });
+  //   return;
+  // }
   const currentState = user.state;
 
   try {
@@ -90,7 +96,7 @@ async function handleRegisterPrompt(user) {
         to: user.phone,
         content: {
           body: {
-            text: "*Sign up*\n🚀 Unlock new transaction perks with Blok AI!",
+            text: "*Sign up*🚀\n Unlock new transaction perks with Blok AI!",
           },
           action: {
             mode: "PUBLISHED",
@@ -121,98 +127,43 @@ async function handleRegisterPrompt(user) {
     return;
   }
 
-  user.state = "/register:step-1";
+  user.state = "/register:send-otp";
   await user.save();
 }
 
-async function handleRegisterStep1(user, message) {
-  user.state = "/register:step-2";
-  user.metadata = {
-    firstName: message.trim(),
-  };
-  await user.save();
-
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: "What is your last name?",
-      },
-    },
-  });
-}
-
-async function handleRegisterStep2(user, message) {
-  user.state = "/register:step-3";
-  const prevMetadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...prevMetadata,
-    lastName: message.trim(),
-  };
-  await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: "Please provide your Date of Birth in this format (YYYY-MM-DD) ?",
-      },
-    },
-  });
-}
-
-async function handleRegisterStep3(user, message) {
-  user.state = "/register:step-4";
-  const prevMetadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...prevMetadata,
-    dob: message.trim(),
-  };
-
-  await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: "What is your email address?",
-      },
-    },
-  });
-}
-
-async function handleRegisterStep4(user, message) {
-  user.state = "/register:step-5";
-  const email = message.trim();
-  const validator = EmailSchema.safeParse({ email });
+async function handleRegisterSendOtp(user, message) {
+  user.state = "/register:verify-otp";
+  const validator = RegisterSchema.safeParse(message);
 
   if (!validator.success) {
+    const error = zodErrorParser(validator);
     await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
+      url: "/whatsapp/1/message/interactive/flow",
       method: "POST",
       data: {
         from: infobip.phone,
         to: user.phone,
         content: {
-          text: "Invalid email address provided. Please try again.",
+          body: {
+            text: `*Errors* ⚠️\n${error}\n\nPlease try again`,
+          },
+          action: {
+            mode: "PUBLISHED",
+            flowMessageVersion: 3,
+            flowToken: "Flow token",
+            flowId: "24693814993544868",
+            callToActionButton: "Continue",
+            flowAction: "NAVIGATE",
+            flowActionPayload: {
+              screen: "SIGNUP_SCREEN",
+            },
+          },
         },
       },
     });
     return;
   }
-
-  const prevMetadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...prevMetadata,
-    email,
-  };
+  user.metadata = message;
 
   try {
     await BlokAxios({
@@ -220,9 +171,9 @@ async function handleRegisterStep4(user, message) {
       method: "POST",
       data: {
         request: {
-          email,
+          email: message.email,
         },
-        phone: user.metadata.phone,
+        phone: user.phone,
       },
     });
     await InfoBipAxios({
@@ -232,10 +183,11 @@ async function handleRegisterStep4(user, message) {
         from: infobip.phone,
         to: user.phone,
         content: {
-          text: "Check your email for OTP",
+          text: "An OTP has been sent to your email. Please enter it below.",
         },
       },
     });
+    await user.save();
   } catch (e) {
     await InfoBipAxios({
       url: "/whatsapp/1/message/text",
@@ -249,37 +201,74 @@ async function handleRegisterStep4(user, message) {
       },
     });
   }
-
-  await user.save();
 }
 
-async function handleRegisterStep5(user, message) {
-  user.state = "/register:step-6";
-  const prevMetadata = JSON.parse(user.metadata);
-
+async function handleRegisterVerifyOtp(user, message) {
   const otp = message.trim();
+  const metadata = JSON.parse(user.metadata);
 
   try {
     await BlokAxios({
       url: "/signup/email/verify",
       method: "POST",
       data: {
-        email: prevMetadata.email,
+        email: metadata.email,
         code: otp,
-        phone: user.metadata.phone,
+        phone: user.phone,
       },
     });
+    await BlokAxios({
+      url: "/signup/details",
+      method: "POST",
+      data: {
+        phone: user.phone,
+        first_name: metadata.firstName,
+        last_name: metadata.lastName,
+        email: metadata.email,
+        password: metadata.password,
+        dob: metadata.dob,
+        gender: "string",
+        is_mobile_app: false,
+      },
+    });
+    const res = await BlokAxios({
+      url: "/login",
+      method: "POST",
+      data: {
+        email: metadata.email,
+        password: metadata.password,
+      },
+    }).then((res) => res.data);
+
+    user.metadata = {
+      token: res.access_token,
+      userId: res.user_id,
+    };
+
     await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
+      url: "/whatsapp/1/message/interactive/buttons",
       method: "POST",
       data: {
         from: infobip.phone,
         to: user.phone,
         content: {
-          text: "Email verified successfully. Please enter a password",
+          body: {
+            text: "Hurray!🎉\nRegistration successful!. Set up your wallet",
+          },
+          action: {
+            buttons: [
+              {
+                type: "REPLY",
+                id: "/wallet:initiate",
+                title: "Create wallet",
+              },
+            ],
+          },
         },
       },
     });
+    user.state = "/kyc";
+    await user.save();
   } catch (e) {
     await InfoBipAxios({
       url: "/whatsapp/1/message/text",
@@ -288,36 +277,11 @@ async function handleRegisterStep5(user, message) {
         from: infobip.phone,
         to: user.phone,
         content: {
-          text: errorParser(e),
+          text: `*An error occured* ⚠️\n${errorParser(e)}\nPlease try again.`,
         },
       },
     });
   }
-
-  await user.save();
-}
-
-async function handleRegisterStep6(user, message) {
-  const password = message.trim();
-  const prevMetadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...prevMetadata,
-    password,
-  };
-
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: `Verify your details are correct. Type */register:complete* to confirm or */register:cancel* to cancel\n\nEmail:${prevMetadata.email}\nPassword:${password}\nFirst Name:${prevMetadata.firstName}\nLast Name:${prevMetadata.lastName}\nDate of Birth:${prevMetadata.dob}`,
-      },
-    },
-  });
-
-  await user.save();
 }
 
 async function handleCancel(user, message) {
@@ -442,8 +406,7 @@ async function handleLoginConfirm(user, message) {
   try {
     const validator = LoginSchema.safeParse(message);
     if (!validator.success) {
-      const errors = validator.error.errors.map((e) => e.message);
-      const error = errors.join("\n");
+      const error = zodErrorParser(validator);
       await InfoBipAxios({
         url: "/whatsapp/1/message/interactive/flow",
         method: "POST",
@@ -539,14 +502,10 @@ module.exports = {
   handleViewProfile,
   sendAuthPrompt,
   handleRegisterPrompt,
-  handleRegisterStep1,
-  handleRegisterStep2,
-  handleRegisterStep3,
-  handleRegisterStep4,
-  handleRegisterStep5,
-  handleRegisterStep6,
   handleCancel,
   handleRegistrationConfirm,
   handleLogin,
   handleLoginConfirm,
+  handleRegisterSendOtp,
+  handleRegisterVerifyOtp,
 };

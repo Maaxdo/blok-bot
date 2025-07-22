@@ -1,15 +1,100 @@
 const { twilioClient } = require("../../../helpers/webhook/twilio");
-const { WalletPinSchema, DepositSchema } = require("../../schema/wallet");
+const {
+  WalletPinSchema,
+  DepositSchema,
+  WithdrawSchema,
+} = require("../../schema/wallet");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../../constants/wallets");
 const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
+const { zodErrorParser, errorParser } = require("../../common/errorParser");
+const { chunkify } = require("../../common/chunkify");
 
+const getChunkedWalletTypes = () => {
+  const chunkedWalletTypes = chunkify(WALLET_TYPES, 3);
+  return chunkedWalletTypes.map((chunk) => {
+    return chunk.map((type) => ({
+      type: "REPLY",
+      id: type,
+      title: type,
+    }));
+  });
+};
+
+async function sendWalletOptions(user) {
+  for (const chunk of getChunkedWalletTypes()) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/buttons",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: "Choose from the available wallet options",
+          },
+          action: {
+            buttons: chunk,
+          },
+        },
+      },
+    });
+  }
+}
+
+async function handleAssets(user, message) {
+  const metadata = JSON.parse(user.metadata);
+  const wallets = await BlokAxios({
+    url: "/user/assets",
+    params: {
+      user_id: metadata.userId,
+    },
+  }).then((res) => res.data.wallets);
+  const walletsInfo = wallets
+    .map(
+      (wallet) =>
+        `Wallet type 💲: *${wallet.wallet_type}*\nBalance 💰: *${wallet.balance}*\nAddress 📄: *${wallet.address}*\nActive ✅: *${wallet.is_active ? "Yes" : "No"}*\nLocked 🔒: *${wallet.is_locked ? "Yes" : "No"}*`,
+    )
+    .join("\n\n");
+
+  const text = `*Here are your assets* ✅\n\n${walletsInfo}`;
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/text",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        text,
+      },
+    },
+  });
+}
 async function handleInitiateWalletGeneration(user, message) {
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    body: "Send a 4 digit pin for your wallet to be generated.",
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/interactive/flow",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        body: {
+          text: "Create a secure Pin for your wallet 🔒",
+        },
+        action: {
+          mode: "PUBLISHED",
+          flowMessageVersion: 3,
+          flowToken: "Flow token",
+          flowId: "1467934914360314",
+          callToActionButton: "Continue",
+          flowAction: "NAVIGATE",
+          flowActionPayload: {
+            screen: "PIN_SCREEN",
+          },
+        },
+      },
+    },
   });
 
   user.state = "/wallet:generate";
@@ -17,18 +102,31 @@ async function handleInitiateWalletGeneration(user, message) {
 }
 
 async function handleGenerateWallet(user, message) {
-  const pin = message.trim();
-  const validate = WalletPinSchema.safeParse({ pin });
+  const validate = WalletPinSchema.safeParse(message);
 
   if (!validate.success) {
+    const error = zodErrorParser(validate);
     await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
+      url: "/whatsapp/1/message/interactive/flow",
       method: "POST",
       data: {
         from: infobip.phone,
         to: user.phone,
         content: {
-          text: "Invalid pin. Please try again.",
+          body: {
+            text: `${error}\n\nPlease try again.`,
+          },
+          action: {
+            mode: "PUBLISHED",
+            flowMessageVersion: 3,
+            flowToken: "Flow token",
+            flowId: "1467934914360314",
+            callToActionButton: "Continue",
+            flowAction: "NAVIGATE",
+            flowActionPayload: {
+              screen: "PIN_SCREEN",
+            },
+          },
         },
       },
     });
@@ -36,77 +134,132 @@ async function handleGenerateWallet(user, message) {
   }
   const metadata = JSON.parse(user.metadata);
   // TODO: Check whether user has wallet before creating
-  for (const type of WALLET_TYPES) {
-    const wallet = await BlokAxios({
-      url: "/wallet",
-      method: "POST",
-      data: {
-        wallet_type: type,
-        user_id: metadata.userId,
-        network: "ethereum",
-      },
-    }).then((res) => res.data);
 
-    await BlokAxios({
-      url: "/wallet/set-pin",
+  try {
+    const wallets = await BlokAxios({
+      url: "/wallet",
+      params: {
+        user_id: metadata.userId,
+      },
+    }).then((res) => res.data.wallets);
+
+    for (const type of WALLET_TYPES) {
+      const prevWallet = wallets.find((wallet) => wallet.wallet_type === type);
+      if (prevWallet) continue;
+      const wallet = await BlokAxios({
+        url: "/wallet",
+        method: "POST",
+        data: {
+          wallet_type: type,
+          user_id: metadata.userId,
+          network: "ethereum",
+        },
+      }).then((res) => res.data);
+
+      await BlokAxios({
+        url: "/wallet/set-pin",
+        method: "POST",
+        data: {
+          wallet_id: wallet.id,
+          pin: message.pin,
+        },
+      });
+    }
+    user.state = "/menu";
+    user.metadata = {
+      ...metadata,
+      hasWallet: true,
+    };
+    await user.save();
+
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/buttons",
       method: "POST",
       data: {
-        wallet_id: wallet.id,
-        pin,
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: "Congratulations!🎉\nWallet generation was successful!. Verify your kyc with /kyc",
+          },
+          action: {
+            buttons: [
+              {
+                type: "REPLY",
+                id: "/kyc",
+                title: "Verify KYC",
+              },
+            ],
+          },
+        },
+      },
+    });
+  } catch (e) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/text",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          text: `*An error occured* ⚠️\n${errorParser(e)}`,
+        },
       },
     });
   }
-
-  user.state = "/menu";
-  user.metadata = {
-    ...metadata,
-    hasWallet: true,
-  };
-  await user.save();
-
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    body: "Your wallet has been generated successfully. Verify your kyc with /kyc",
-  });
 }
 
 async function handleDeposit(user, message) {
-  // await twilioClient.messages.create({
-  //   from: process.env.TWILO_FROM,
-  //   to: `whatsapp:+${user.phone}`,
-  //   contentSid: "HX0e420989bc7f3733f1f288a9404106ea",
-  //   contentVariables: JSON.stringify({
-  //     1: "USDT",
-  //     2: "SOL",
-  //     3: "BTC",
-  //     4: "ETH",
-  //     5: "BNB",
-  //   }),
-  // });
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    body: `Choose from the available wallet options, reply with:\n\nUSDT\nSOL\nBTC\nETH\nBNB`,
-  });
+  await sendWalletOptions(user);
 
-  user.state = "/deposit:select";
+  user.state = "/deposit:wallet";
   await user.save();
 }
 
-async function handleDepositSelect(user, message) {
+async function handleDepositWalletSelect(user, message) {
   const wallet = message.trim().toUpperCase();
   const validate = DepositSchema.safeParse({ wallet });
 
   if (!validate.success) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "Invalid wallet selected",
-    });
+    await sendWalletOptions(user);
     return;
   }
 
+  const prev = JSON.parse(user.metadata);
+  user.metadata = {
+    ...prev,
+    wallet,
+  };
+
+  user.state = "/deposit:network";
+  await user.save();
+
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/interactive/buttons",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        body: {
+          text: `Choose from the available networks for ${wallet}`,
+        },
+        action: {
+          buttons: [
+            {
+              type: "REPLY",
+              id: "testnet",
+              title: "Testnet",
+            },
+          ],
+        },
+      },
+    },
+  });
+}
+
+async function handleDepositNetworkSelect(user, message) {
+  const network = message.trim().toUpperCase();
   const metadata = JSON.parse(user.metadata);
 
   const res = await BlokAxios({
@@ -114,36 +267,35 @@ async function handleDepositSelect(user, message) {
     method: "POST",
     data: {
       user_id: metadata.userId,
-      wallet_type: wallet,
+      wallet_type: metadata.wallet,
       logo_url: "string",
       currency_name: "NGN",
+      network,
     },
   }).then((res) => res.data);
 
   user.state = "/menu";
+  user.metadata = {
+    token: metadata.token,
+    userId: metadata.userId,
+  };
   await user.save();
 
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    body: `You can deposit to your ${wallet} 💰🪙 address with the info below\n\n*WALLET ADDRESS:* ${res.address}\n*NETWORK:* ${res.network}`,
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/text",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        text: `*Deposit Info* ℹ️\n\n*Wallet*: ${res.wallet_type}\n*Wallet address*: ${res.address}\n*Network*: ${res.network}`,
+      },
+    },
   });
 }
 
 async function handleWithdraw(user, message) {
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    contentSid: "HX0e420989bc7f3733f1f288a9404106ea",
-    contentVariables: JSON.stringify({
-      1: "USDT",
-      2: "SOL",
-      3: "BTC",
-      4: "ETH",
-      5: "BNB",
-    }),
-  });
-
+  await sendWalletOptions(user);
   user.state = "/withdraw:select";
   await user.save();
 }
@@ -152,115 +304,123 @@ async function handleWithdrawSelect(user, message) {
   const wallet = message.trim().toUpperCase();
   const validate = DepositSchema.safeParse({ wallet });
   if (!validate.success) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "Invalid wallet selected",
-    });
+    await sendWalletOptions(user);
     return;
   }
 
   const metadata = JSON.parse(user.metadata);
   user.metadata = {
     ...metadata,
-    withdrawWallet: wallet,
+    wallet,
   };
-  user.state = "/withdraw:amount";
+  user.state = "/withdraw:options";
   await user.save();
 
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    body: `You have selected ${wallet} for withdrawal. Please send the amount you want to withdraw.`,
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/interactive/flow",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        body: {
+          text: `I’ll need a few details to process your withdrawal for ${wallet}`,
+        },
+        action: {
+          mode: "PUBLISHED",
+          flowMessageVersion: 3,
+          flowToken: "Flow token",
+          flowId: "689305550776146",
+          callToActionButton: "Continue",
+          flowAction: "NAVIGATE",
+          flowActionPayload: {
+            screen: "WITHDRAW_SCREEN",
+          },
+        },
+      },
+    },
   });
 }
 
-async function handleWithdrawAmount(user, message) {
-  const amount = parseFloat(message.trim());
-  if (isNaN(amount) || amount <= 0) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "Invalid amount. Please enter a valid amount to withdraw.",
+async function handleWithdrawOptions(user, message) {
+  const metadata = JSON.parse(user.metadata);
+  const validator = WithdrawSchema.safeParse(message);
+
+  if (!validator.success) {
+    const error = zodErrorParser(validator);
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/flow",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: `The details you provided are invalid.\n${error}`,
+          },
+          action: {
+            mode: "PUBLISHED",
+            flowMessageVersion: 3,
+            flowToken: "Flow token",
+            flowId: "689305550776146",
+            callToActionButton: "Continue",
+            flowAction: "NAVIGATE",
+            flowActionPayload: {
+              screen: "WITHDRAW_SCREEN",
+            },
+          },
+        },
+      },
     });
     return;
   }
 
-  const metadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...metadata,
-    withdrawAmount: amount,
-  };
-  user.state = "/withdraw:address";
-  await user.save();
-}
-
-async function handleWithdrawAddress(user, message) {
-  const address = message.trim();
-  if (!address || address.length < 1) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "Invalid wallet address. Please enter a valid wallet address.",
+  try {
+    await BlokAxios({
+      url: "/crypto/withdraw",
+      method: "POST",
+      data: {
+        user_id: metadata.userId,
+        wallet_type: metadata.wallet,
+        destination_address: message.address,
+        pin: message.pin,
+        amount: message.amount,
+      },
     });
-    return;
-  }
-
-  const metadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...metadata,
-    withdrawAddress: address,
-  };
-  user.state = "/withdraw:pin";
-  await user.save();
-
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    body: "Please send your wallet pin to confirm the withdrawal.",
-  });
-}
-
-async function handleWithdrawPin(user, message) {
-  const pin = message.trim();
-  const validate = WalletPinSchema.safeParse({ pin });
-
-  if (!validate.success) {
-    await twilioClient.messages.create({
-      from: process.env.TWILO_FROM,
-      to: `whatsapp:+${user.phone}`,
-      body: "Invalid pin. Please try again.",
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/text",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          text: "Withdrawal request received and is being processed",
+        },
+      },
+    });
+  } catch (e) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/text",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          text: `*An error occurred* ⚠️\n${errorParser(e)}`,
+        },
+      },
     });
   }
-
-  const metadata = JSON.parse(user.metadata);
-  user.metadata = {
-    ...metadata,
-    withdrawPin: pin,
-  };
-  user.state = "/withdraw:confirm";
-  await user.save();
-
-  await twilioClient.messages.create({
-    from: process.env.TWILO_FROM,
-    to: `whatsapp:+${user.phone}`,
-    contentSid: "",
-    contentVariables: JSON.stringify({
-      1: metadata.withdrawWallet,
-      2: metadata.withdrawAmount,
-      3: metadata.withdrawAddress,
-    }),
-  });
 }
 
 module.exports = {
+  handleAssets,
   handleInitiateWalletGeneration,
   handleGenerateWallet,
   handleDeposit,
-  handleDepositSelect,
+  handleDepositWalletSelect,
+  handleDepositNetworkSelect,
   handleWithdraw,
   handleWithdrawSelect,
-  handleWithdrawAmount,
-  handleWithdrawAddress,
-  handleWithdrawPin,
+  handleWithdrawOptions,
 };

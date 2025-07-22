@@ -1,9 +1,39 @@
 const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
 
+const options = [
+  {
+    title: "View your assets",
+    id: "/my-assets",
+  },
+  {
+    title: "Buy Crypto",
+    id: "/buy",
+  },
+  {
+    title: "Sell Crypto",
+    id: "/sell",
+  },
+  {
+    title: "Deposit",
+    id: "/deposit",
+  },
+  {
+    title: "Withdraw",
+    id: "/withdraw",
+  },
+  {
+    title: "View your profile",
+    id: "/profile",
+  },
+];
+
+const optionsString = options
+  .map((option) => `✅ ${option.title} - Type *${option.id}*\n`)
+  .join("\n");
+
 async function handleMenu(user) {
-  const body =
-    "Here's what you can do on Blok:\n\n✅ Buy Crypto - Type /buy\n✅ Sell Crypto - Type /sell\n✅ Deposit - Type /deposit\n✅ Withdraw - Type /withdraw\n✅ View your profile - Type /profile\n";
+  const text = `Here's what you can do on Blok:\n\n${optionsString}`;
   await InfoBipAxios({
     url: "/whatsapp/1/message/text",
     method: "POST",
@@ -11,7 +41,7 @@ async function handleMenu(user) {
       from: infobip.phone,
       to: user.phone,
       content: {
-        text: body,
+        text,
       },
     },
   });

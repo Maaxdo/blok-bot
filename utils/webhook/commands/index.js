@@ -1,17 +1,13 @@
 const {
   sendAuthPrompt,
   handleRegisterPrompt,
-  handleRegisterStep1,
-  handleRegisterStep2,
-  handleRegisterStep3,
-  handleRegisterStep4,
   handleCancel,
   handleRegistrationConfirm,
   handleViewProfile,
-  handleRegisterStep5,
-  handleRegisterStep6,
   handleLogin,
   handleLoginConfirm,
+  handleRegisterSendOtp,
+  handleRegisterVerifyOtp,
 } = require("./auth");
 
 const { handleMenu } = require("./menu");
@@ -20,12 +16,12 @@ const {
   handleInitiateWalletGeneration,
   handleGenerateWallet,
   handleDeposit,
-  handleDepositSelect,
   handleWithdraw,
   handleWithdrawSelect,
-  handleWithdrawAmount,
-  handleWithdrawAddress,
-  handleWithdrawPin,
+  handleDepositWalletSelect,
+  handleDepositNetworkSelect,
+  handleWithdrawOptions,
+  handleAssets,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
 
@@ -39,28 +35,16 @@ const commands = [
     function: handleRegisterPrompt,
   },
   {
-    command: "/register:step-1",
-    function: handleRegisterStep1,
+    command: "/register:send-otp",
+    function: handleRegisterSendOtp,
   },
   {
-    command: "/register:step-2",
-    function: handleRegisterStep2,
+    command: "/register:verify-otp",
+    function: handleRegisterVerifyOtp,
   },
   {
-    command: "/register:step-3",
-    function: handleRegisterStep3,
-  },
-  {
-    command: "/register:step-4",
-    function: handleRegisterStep4,
-  },
-  {
-    command: "/register:step-5",
-    function: handleRegisterStep5,
-  },
-  {
-    command: "/register:step-6",
-    function: handleRegisterStep6,
+    command: "/register",
+    function: handleRegisterPrompt,
   },
   {
     command: "/register:cancel",
@@ -100,43 +84,43 @@ const commands = [
   },
   {
     command: "/deposit",
-    function: auth(handleDeposit),
+    function: auth(handleDeposit, true, true),
   },
   {
-    command: "/deposit:select",
-    function: auth(handleDepositSelect),
+    command: "/deposit:wallet",
+    function: auth(handleDepositWalletSelect, true, true),
+  },
+  {
+    command: "/deposit:network",
+    function: auth(handleDepositNetworkSelect, true, true),
   },
   {
     command: "/withdraw",
-    function: auth(handleWithdraw),
+    function: auth(handleWithdraw, true, true),
   },
   {
     command: "/withdraw:select",
-    function: auth(handleWithdrawSelect),
+    function: auth(handleWithdrawSelect, true, true),
   },
   {
-    command: "/withdraw:amount",
-    function: auth(handleWithdrawAmount),
+    command: "/withdraw:options",
+    function: auth(handleWithdrawOptions, true, true),
   },
   {
-    command: "/withdraw:address",
-    function: auth(handleWithdrawAddress),
-  },
-  {
-    command: "/withdraw:pin",
-    function: auth(handleWithdrawPin),
+    command: "/my-assets",
+    function: auth(handleAssets, true, true),
   },
   {
     command: "/menu",
-    function: auth(handleMenu, true),
+    function: auth(handleMenu, false),
   },
   {
     command: "/buy",
-    function: auth(() => {}, true),
+    function: auth(() => {}, true, true),
   },
   {
     command: "/sell",
-    function: auth(() => {}, true),
+    function: auth(() => {}, true, true),
   },
 ];
 

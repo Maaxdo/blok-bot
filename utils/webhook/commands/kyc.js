@@ -5,6 +5,8 @@ const { KycSchema } = require("../../schema/kyc");
 const { errorParser } = require("../../common/errorParser");
 
 async function handleStartKyc(user, message) {
+  user.state = "/kyc:bvn";
+  await user.save();
   await InfoBipAxios({
     url: "/whatsapp/1/message/interactive/flow",
     method: "POST",
@@ -29,8 +31,6 @@ async function handleStartKyc(user, message) {
       },
     },
   });
-  user.state = "/kyc:bvn";
-  await user.save();
 }
 
 async function handleKycBVN(user, message) {
