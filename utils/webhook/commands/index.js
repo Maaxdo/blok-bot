@@ -22,8 +22,29 @@ const {
   handleDepositNetworkSelect,
   handleWithdrawOptions,
   handleAssets,
+  handleBuy,
+  handleBuySelect,
+  handleBuyOptions,
+  handleSell,
+  handleSellWalletSelect,
+  handleSellAccountSelect,
+  handleSellOptions,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
+const {
+  handleAccounts,
+  handleAccountAdd,
+  handleBanksNext,
+  handleBanksPrev,
+  handleBankSelect,
+  handleAccountAddNumber,
+  handleAccountAddCancel,
+  handleAccountAddConfirm,
+  handleAccountDelete,
+  handleAccountDeleteSelect,
+  handleAccountDeleteCancel,
+  handleAccountDeleteConfirm,
+} = require("./accounts");
 
 const commands = [
   {
@@ -116,11 +137,80 @@ const commands = [
   },
   {
     command: "/buy",
-    function: auth(() => {}, true, true),
+    function: auth(handleBuy, false, false),
   },
   {
+    command: "/buy:select",
+    function: auth(handleBuySelect, false, false),
+  },
+  {
+    command: "/buy:options",
+    function: auth(handleBuyOptions, false, false),
+  },
+
+  {
     command: "/sell",
-    function: auth(() => {}, true, true),
+    function: auth(handleSell, false, false),
+  },
+  {
+    command: "/sell:wallet:select",
+    function: auth(handleSellWalletSelect, false, false),
+  },
+  {
+    command: "/sell:account:select",
+    function: auth(handleSellAccountSelect, false, false),
+  },
+  {
+    command: "/sell:options",
+    function: auth(handleSellOptions, false, false),
+  },
+  {
+    command: "/accounts",
+    function: auth(handleAccounts, false, false),
+  },
+  {
+    command: "/accounts:add",
+    function: auth(handleAccountAdd, false, false),
+  },
+  {
+    command: "/accounts:add:number",
+    function: auth(handleAccountAddNumber, false, false),
+  },
+  {
+    command: "/accounts:add:cancel",
+    function: auth(handleAccountAddCancel, false, false),
+  },
+  {
+    command: "/accounts:add:confirm",
+    function: auth(handleAccountAddConfirm, false, false),
+  },
+  {
+    command: "/accounts:banks:next",
+    function: auth(handleBanksNext, false, false),
+  },
+  {
+    command: "/accounts:banks:prev",
+    function: auth(handleBanksPrev, false, false),
+  },
+  {
+    command: "/accounts:banks:select",
+    function: auth(handleBankSelect, false, false),
+  },
+  {
+    command: "/accounts:delete",
+    function: auth(handleAccountDelete, false, false),
+  },
+  {
+    command: "/accounts:delete:select",
+    function: auth(handleAccountDeleteSelect, false, false),
+  },
+  {
+    command: "/accounts:delete:cancel",
+    function: auth(handleAccountDeleteCancel, false, false),
+  },
+  {
+    command: "/accounts:delete:confirm",
+    function: auth(handleAccountDeleteConfirm, false, false),
   },
 ];
 

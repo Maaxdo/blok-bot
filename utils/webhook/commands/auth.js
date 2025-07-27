@@ -1,4 +1,3 @@
-const { twilioClient } = require("../../../helpers/webhook/twilio");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { LoginSchema, RegisterSchema } = require("../../schema/auth");
 const { handleMenu } = require("./menu");
@@ -11,7 +10,7 @@ async function sendAuthPrompt(user) {
 
   if (!metadata) {
     await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
+      url: "/whatsapp/1/message/interactive/buttons",
       method: "POST",
       data: {
         from: infobip.phone,

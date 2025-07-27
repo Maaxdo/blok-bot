@@ -11,6 +11,10 @@ const options = [
     id: "/buy",
   },
   {
+    title: "View your saved accounts",
+    id: "/accounts",
+  },
+  {
     title: "Sell Crypto",
     id: "/sell",
   },

@@ -1,8 +1,8 @@
-const { twilioClient } = require("../../../helpers/webhook/twilio");
 const {
   WalletPinSchema,
   DepositSchema,
   WithdrawSchema,
+  BuySchema,
 } = require("../../schema/wallet");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../../constants/wallets");
@@ -413,6 +413,390 @@ async function handleWithdrawOptions(user, message) {
   }
 }
 
+async function handleBuy(user, message) {
+  await sendWalletOptions(user);
+  user.state = "/buy:select";
+  await user.save();
+}
+
+async function handleBuySelect(user, message) {
+  const wallet = message.trim().toUpperCase();
+  const validate = DepositSchema.safeParse({ wallet });
+  if (!validate.success) {
+    await sendWalletOptions(user);
+    return;
+  }
+
+  const metadata = JSON.parse(user.metadata);
+  user.metadata = {
+    ...metadata,
+    wallet,
+  };
+  user.state = "/buy:options";
+  await user.save();
+
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/interactive/flow",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        body: {
+          text: `I’ll need a few details to process your transaction ${wallet}`,
+        },
+        action: {
+          mode: "PUBLISHED",
+          flowMessageVersion: 3,
+          flowToken: "Flow token",
+          flowId: "24035309786120142",
+          callToActionButton: "Continue",
+          flowAction: "NAVIGATE",
+          flowActionPayload: {
+            screen: "BUY_SCREEN",
+          },
+        },
+      },
+    },
+  });
+}
+
+async function handleBuyOptions(user, message) {
+  const metadata = JSON.parse(user.metadata);
+  const validator = BuySchema.safeParse(message);
+
+  if (!validator.success) {
+    const error = zodErrorParser(validator);
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/flow",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: `The details you provided are invalid.\n${error}`,
+          },
+          action: {
+            mode: "PUBLISHED",
+            flowMessageVersion: 3,
+            flowToken: "Flow token",
+            flowId: "24035309786120142",
+            callToActionButton: "Continue",
+            flowAction: "NAVIGATE",
+            flowActionPayload: {
+              screen: "BUY_SCREEN",
+            },
+          },
+        },
+      },
+    });
+    return;
+  }
+
+  try {
+    const res = await BlokAxios({
+      url: "/crypto/buy/fintava",
+      method: "POST",
+      data: {
+        user_id: metadata.userId,
+        wallet_type: metadata.wallet,
+        currency: metadata.wallet,
+        pin: message.pin,
+        amount: message.amount,
+      },
+    }).then((res) => res.data);
+    user.state = "/menu";
+    await user.save();
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/text",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          text: `Please transfer the required amount to the details provided to complete your transaction\n\nAmount: *₦ ${res.naira_equivalent.toLocaleString()}*\nAccount number: *${res.deposit_details.account_number}*\nBank name: *${res.deposit_details.bank_name}*\nAccount number: *${res.deposit_details.account_name}*`,
+        },
+      },
+    });
+  } catch (e) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/text",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          text: `*An error occurred* ⚠️\n${errorParser(e)}`,
+        },
+      },
+    });
+  }
+}
+
+async function handleSell(user, message) {
+  await sendWalletOptions(user);
+  user.state = "/sell:wallet:select";
+  await user.save();
+}
+
+async function handleSellWalletSelect(user, message) {
+  const wallet = message.trim().toUpperCase();
+  const validate = DepositSchema.safeParse({ wallet });
+  if (!validate.success) {
+    await sendWalletOptions(user);
+    return;
+  }
+  const metadata = JSON.parse(user.metadata);
+  user.metadata = {
+    ...metadata,
+    wallet,
+  };
+  user.state = "/sell:account:select";
+  await user.save();
+
+  const accounts = await BlokAxios({
+    url: `/bank/${metadata.userId}`,
+  }).then((res) => res.data);
+
+  if (!accounts.length) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/buttons",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: "You do not have any bank accounts connected to your account. Please connect a bank account to continue",
+          },
+          action: {
+            buttons: [
+              {
+                type: "REPLY",
+                id: "/accounts:add",
+                title: "Connect Bank Account",
+              },
+            ],
+          },
+        },
+      },
+    });
+    return;
+  }
+
+  const accountsList = accounts
+    .map(
+      (account, index) =>
+        `${index + 1} - ${account.bank_name} *${account.account_number}*`,
+    )
+    .join("\n");
+  const text = `Choose from your available accounts :\n\n${accountsList}`;
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/text",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        text,
+      },
+    },
+  });
+}
+
+async function handleSellAccountSelect(user, message) {
+  const metadata = JSON.parse(user.metadata);
+
+  const selectedIndex = parseInt(message.trim()) - 1;
+
+  if (isNaN(selectedIndex)) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/buttons",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: "Invalid account selected. Please try again.",
+          },
+          action: {
+            buttons: [
+              {
+                type: "REPLY",
+                id: "/sell",
+                title: "Sell",
+              },
+            ],
+          },
+        },
+      },
+    });
+    return;
+  }
+  const res = await BlokAxios({
+    url: `/bank/${metadata.userId}`,
+  }).then((res) => res.data);
+
+  const selectedAccount = res[selectedIndex];
+
+  if (!selectedAccount) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/buttons",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: "Invalid account selected. Please try again.",
+          },
+          action: {
+            buttons: [
+              {
+                type: "REPLY",
+                id: "/sell",
+                title: "Sell",
+              },
+            ],
+          },
+        },
+      },
+    });
+    return;
+  }
+
+  user.state = "/sell:options";
+  user.metadata = {
+    ...metadata,
+    selectedAccount,
+  };
+  await user.save();
+
+  await InfoBipAxios({
+    url: "/whatsapp/1/message/interactive/flow",
+    method: "POST",
+    data: {
+      from: infobip.phone,
+      to: user.phone,
+      content: {
+        body: {
+          text: "Fill in the details to sell your crypto",
+        },
+        action: {
+          mode: "PUBLISHED",
+          flowMessageVersion: 3,
+          flowToken: "Flow token",
+          flowId: "1471312790690765",
+          callToActionButton: "Continue",
+          flowAction: "NAVIGATE",
+          flowActionPayload: {
+            screen: "SELL_SCREEN",
+          },
+        },
+      },
+    },
+  });
+}
+
+async function handleSellOptions(user, message) {
+  const validator = BuySchema.safeParse(message);
+
+  if (!validator.success) {
+    const error = zodErrorParser(validator);
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/flow",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: `The details you provided are invalid.\n${error}`,
+          },
+          action: {
+            mode: "PUBLISHED",
+            flowMessageVersion: 3,
+            flowToken: "Flow token",
+            flowId: "1471312790690765",
+            callToActionButton: "Continue",
+            flowAction: "NAVIGATE",
+            flowActionPayload: {
+              screen: "SELL_SCREEN",
+            },
+          },
+        },
+      },
+    });
+    return;
+  }
+  const metadata = JSON.parse(user.metadata);
+
+  try {
+    const response = await BlokAxios({
+      url: "/crypto/sell/fintava",
+      method: "POST",
+      data: {
+        user_id: metadata.userId,
+        wallet_type: metadata.wallet,
+        bank_account_id: metadata.selectedAccount.id,
+        currency: metadata.wallet,
+        ...message,
+      },
+    }).then((res) => res.data);
+    user.state = "/menu";
+    await user.save();
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/buttons",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: `ℹ️ Transaction ${response.transaction_status}, ${response.transfer_details.message}`,
+          },
+          action: {
+            buttons: [
+              {
+                type: "REPLY",
+                id: "/menu",
+                title: "Menu",
+              },
+            ],
+          },
+        },
+      },
+    });
+  } catch (e) {
+    await InfoBipAxios({
+      url: "/whatsapp/1/message/interactive/flow",
+      method: "POST",
+      data: {
+        from: infobip.phone,
+        to: user.phone,
+        content: {
+          body: {
+            text: `⚠️ An error occurred.\n${errorParser(e)}`,
+          },
+          action: {
+            mode: "PUBLISHED",
+            flowMessageVersion: 3,
+            flowToken: "Flow token",
+            flowId: "1471312790690765",
+            callToActionButton: "Continue",
+            flowAction: "NAVIGATE",
+            flowActionPayload: {
+              screen: "SELL_SCREEN",
+            },
+          },
+        },
+      },
+    });
+  }
+}
+
 module.exports = {
   handleAssets,
   handleInitiateWalletGeneration,
@@ -423,4 +807,11 @@ module.exports = {
   handleWithdraw,
   handleWithdrawSelect,
   handleWithdrawOptions,
+  handleBuy,
+  handleBuySelect,
+  handleBuyOptions,
+  handleSell,
+  handleSellWalletSelect,
+  handleSellAccountSelect,
+  handleSellOptions,
 };

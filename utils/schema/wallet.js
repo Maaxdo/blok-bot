@@ -20,7 +20,14 @@ const WithdrawSchema = z.object({
   amount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/, {
     message: "Amount must be a valid number",
   }),
+  pin: z.string().min(1, "Pin is required"),
   address: z.string().min(1, "Address is required"),
+});
+
+const BuySchema = z.object({
+  amount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/, {
+    message: "Amount must be a valid number",
+  }),
   pin: z.string().min(1, "Pin is required"),
 });
 
@@ -28,4 +35,5 @@ module.exports = {
   WalletPinSchema,
   DepositSchema,
   WithdrawSchema,
+  BuySchema,
 };
