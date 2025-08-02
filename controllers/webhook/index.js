@@ -9,7 +9,7 @@ function handleGetWebhook(req, res) {
 }
 
 async function saveUser(req, res, next) {
-  // Disallow any other event apart from message events
+  // Disallow any other event apar  t from message events
   if (!req.body.results) {
     return res.status(200).send("EVENT RECEIVED: No body");
   }

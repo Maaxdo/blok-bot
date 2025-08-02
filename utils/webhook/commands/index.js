@@ -45,6 +45,10 @@ const {
   handleAccountDeleteCancel,
   handleAccountDeleteConfirm,
 } = require("./accounts");
+const {
+  handleTransactions,
+  handleTransactionsDate,
+} = require("./transactions");
 
 const commands = [
   {
@@ -211,6 +215,14 @@ const commands = [
   {
     command: "/accounts:delete:confirm",
     function: auth(handleAccountDeleteConfirm, false, false),
+  },
+  {
+    command: "/transactions",
+    function: auth(handleTransactions, false, false),
+  },
+  {
+    command: "/transactions:dates",
+    function: auth(handleTransactionsDate, false, false),
   },
 ];
 
