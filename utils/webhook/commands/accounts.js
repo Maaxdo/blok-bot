@@ -48,7 +48,7 @@ async function getBanks() {
 
 async function handleAccounts(user, message) {
   try {
-    const metadata = JSON.parse(user.metadata);
+    const metadata = user.metadata;
     const res = await BlokAxios({
       url: `/bank/${metadata.userId}`,
     });
@@ -105,7 +105,7 @@ async function handleAccounts(user, message) {
 }
 
 async function handleAccountAdd(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const banks = await cache("banks", getBanks);
   const paginated = paginate(banks, 1, 20);
   const { items, offset, hasPrevPage, hasNextPage } = paginated;
@@ -145,7 +145,7 @@ async function handleAccountAdd(user, message) {
 }
 
 async function handleBanksNext(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const banks = await cache("banks", getBanks);
 
   if (metadata.hasNextPage) {
@@ -187,7 +187,7 @@ async function handleBanksNext(user, message) {
   }
 }
 async function handleBanksPrev(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const banks = await cache("banks", getBanks);
 
   if (metadata.hasPrevPage) {
@@ -230,7 +230,7 @@ async function handleBanksPrev(user, message) {
 }
 
 async function handleBankSelect(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const banks = await cache("banks", getBanks);
   const selectedIndex = parseInt(message.trim()) - 1;
   const selectedBank = banks[selectedIndex];
@@ -282,7 +282,7 @@ async function handleBankSelect(user, message) {
 }
 
 async function handleAccountAddNumber(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const accountNumber = message.trim();
 
   try {
@@ -342,7 +342,7 @@ async function handleAccountAddNumber(user, message) {
 }
 
 async function handleAccountAddConfirm(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   try {
     await BlokAxios({
@@ -393,7 +393,7 @@ async function handleAccountAddConfirm(user, message) {
 }
 
 async function handleAccountAddCancel(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   user.state = "/menu";
   user.metadata = {
     token: metadata.token,
@@ -425,7 +425,7 @@ async function handleAccountAddCancel(user, message) {
 }
 
 async function handleAccountDelete(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const res = await BlokAxios({
     url: `/bank/${metadata.userId}`,
   }).then((res) => res.data);
@@ -452,7 +452,7 @@ async function handleAccountDelete(user, message) {
 }
 
 async function handleAccountDeleteSelect(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   const selectedIndex = parseInt(message.trim()) - 1;
 
@@ -551,7 +551,7 @@ async function handleAccountDeleteSelect(user, message) {
 }
 
 async function handleAccountDeleteConfirm(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const { selectedAccount } = metadata;
   try {
     await BlokAxios({
@@ -610,7 +610,7 @@ async function handleAccountDeleteConfirm(user, message) {
 }
 
 async function handleAccountDeleteCancel(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   user.state = "/menu";
   user.metadata = {
     token: metadata.token,

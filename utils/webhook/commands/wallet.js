@@ -44,7 +44,7 @@ async function sendWalletOptions(user) {
 }
 
 async function handleAssets(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const wallets = await BlokAxios({
     url: "/user/assets",
     params: {
@@ -132,7 +132,7 @@ async function handleGenerateWallet(user, message) {
     });
     return;
   }
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   // TODO: Check whether user has wallet before creating
 
   try {
@@ -225,7 +225,7 @@ async function handleDepositWalletSelect(user, message) {
     return;
   }
 
-  const prev = JSON.parse(user.metadata);
+  const prev = user.metadata;
   user.metadata = {
     ...prev,
     wallet,
@@ -260,7 +260,7 @@ async function handleDepositWalletSelect(user, message) {
 
 async function handleDepositNetworkSelect(user, message) {
   const network = message.trim().toUpperCase();
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   const res = await BlokAxios({
     url: "/crypto/deposit",
@@ -308,7 +308,7 @@ async function handleWithdrawSelect(user, message) {
     return;
   }
 
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   user.metadata = {
     ...metadata,
     wallet,
@@ -343,7 +343,7 @@ async function handleWithdrawSelect(user, message) {
 }
 
 async function handleWithdrawOptions(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const validator = WithdrawSchema.safeParse(message);
 
   if (!validator.success) {
@@ -427,7 +427,7 @@ async function handleBuySelect(user, message) {
     return;
   }
 
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   user.metadata = {
     ...metadata,
     wallet,
@@ -462,7 +462,7 @@ async function handleBuySelect(user, message) {
 }
 
 async function handleBuyOptions(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const validator = BuySchema.safeParse(message);
 
   if (!validator.success) {
@@ -547,7 +547,7 @@ async function handleSellWalletSelect(user, message) {
     await sendWalletOptions(user);
     return;
   }
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   user.metadata = {
     ...metadata,
     wallet,
@@ -606,7 +606,7 @@ async function handleSellWalletSelect(user, message) {
 }
 
 async function handleSellAccountSelect(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   const selectedIndex = parseInt(message.trim()) - 1;
 
@@ -731,7 +731,7 @@ async function handleSellOptions(user, message) {
     });
     return;
   }
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   try {
     const response = await BlokAxios({

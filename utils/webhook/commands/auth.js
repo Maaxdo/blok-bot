@@ -6,7 +6,7 @@ const { infobip } = require("../../../config/app");
 const { errorParser, zodErrorParser } = require("../../common/errorParser");
 
 async function sendAuthPrompt(user) {
-  const metadata = user.metadata?.userId ? JSON.parse(user.metadata) : null;
+  const metadata = user.metadata?.userId ? user.metadata : null;
 
   if (!metadata) {
     await InfoBipAxios({
@@ -204,7 +204,7 @@ async function handleRegisterSendOtp(user, message) {
 
 async function handleRegisterVerifyOtp(user, message) {
   const otp = message.trim();
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   try {
     await BlokAxios({
@@ -302,7 +302,7 @@ async function handleCancel(user, message) {
 }
 
 async function handleRegistrationConfirm(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   await BlokAxios({
     url: "/signup/details",
@@ -349,7 +349,7 @@ async function handleRegistrationConfirm(user, message) {
 }
 
 async function handleViewProfile(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const profile = await BlokAxios({
     url: "/profile",
     params: {

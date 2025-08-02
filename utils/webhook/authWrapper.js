@@ -23,7 +23,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
       return;
     }
 
-    const metadata = JSON.parse(user.metadata);
+    const metadata = user.metadata;
     if (checkKyc && !metadata.hasVerifiedKyc) {
       await InfoBipAxios({
         url: "/whatsapp/1/message/interactive/buttons",

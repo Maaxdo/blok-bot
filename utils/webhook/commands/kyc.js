@@ -34,7 +34,7 @@ async function handleStartKyc(user, message) {
 }
 
 async function handleKycBVN(user, message) {
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
   const validator = KycSchema.safeParse(message);
 
   if (!validator.success) {

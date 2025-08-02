@@ -27,7 +27,7 @@ async function handleTransactions(user, message) {
 
 async function handleTransactionsDate(user, message) {
   const validation = DateSchema.safeParse(message);
-  const metadata = JSON.parse(user.metadata);
+  const metadata = user.metadata;
 
   if (!validation.success) {
     await sendFlow({

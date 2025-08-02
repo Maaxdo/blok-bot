@@ -1,7 +1,8 @@
-const { User } = require("../../db/models");
+// const { User } = require("../../db/models");`
 const { commands } = require("../../utils/webhook/commands");
 const { extractMessage } = require("../../utils/webhook/extractMessage");
 const { handleMenu } = require("../../utils/webhook/commands/menu");
+const { User } = require("../../db/models");
 
 function handleGetWebhook(req, res) {
   const challenge = req.query["hub.challenge"];
@@ -9,7 +10,7 @@ function handleGetWebhook(req, res) {
 }
 
 async function saveUser(req, res, next) {
-  // Disallow any other event apar  t from message events
+  // Disallow any other event apart from message events
   if (!req.body.results) {
     return res.status(200).send("EVENT RECEIVED: No body");
   }
@@ -18,9 +19,7 @@ async function saveUser(req, res, next) {
     const phone = req.body.results[0].sender;
 
     const user = await User.findOne({
-      where: {
-        phone,
-      },
+      phone,
     });
 
     if (user) {
@@ -28,10 +27,10 @@ async function saveUser(req, res, next) {
       return next();
     }
 
-    req.user = await User.create({
+    req.user = await new User({
       phone,
       state: "/start",
-    });
+    }).save();
     return next();
   } catch (err) {
     console.log(err);
