@@ -26,5 +26,8 @@ module.exports = {
     host: process.env.DB_PROD_HOST,
     port: parseInt(process.env.DB_PROD_PORT),
     dialect: "postgres",
+    dialectOptions: {
+      connectTimeout: 30000,
+    },
   },
 };
