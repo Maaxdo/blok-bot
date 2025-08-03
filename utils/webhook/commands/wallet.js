@@ -10,6 +10,10 @@ const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
 const { zodErrorParser, errorParser } = require("../../common/errorParser");
 const { chunkify } = require("../../common/chunkify");
+const {
+  sendInteractiveButtons,
+  sendText,
+} = require("../../../helpers/bot/infobip");
 
 const getChunkedWalletTypes = () => {
   const chunkedWalletTypes = chunkify(WALLET_TYPES, 3);
@@ -71,6 +75,7 @@ async function handleAssets(user, message) {
     },
   });
 }
+
 async function handleInitiateWalletGeneration(user, message) {
   await InfoBipAxios({
     url: "/whatsapp/1/message/interactive/flow",
@@ -508,16 +513,21 @@ async function handleBuyOptions(user, message) {
     }).then((res) => res.data);
     user.state = "/menu";
     await user.save();
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `Please transfer the required amount to the details provided to complete your transaction\n\nAmount: *₦ ${res.naira_equivalent.toLocaleString()}*\nAccount number: *${res.deposit_details.account_number}*\nBank name: *${res.deposit_details.bank_name}*\nAccount number: *${res.deposit_details.account_name}*`,
+
+    await sendInteractiveButtons({
+      user,
+      text: `Please transfer the required amount to the details provided to complete your transaction\n\nAmount: *₦ ${res.naira_equivalent.toLocaleString()}*\nAccount number: *${res.deposit_details.account_number}*\nBank name: *${res.deposit_details.bank_name}*\nAccount number: *${res.deposit_details.account_name}*`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/buy:confirm-payment",
+          title: "Done",
         },
-      },
+      ],
+    });
+    await sendText({
+      user,
+      text: `*${res.deposit_details.account_number}*`,
     });
   } catch (e) {
     await InfoBipAxios({
@@ -532,6 +542,13 @@ async function handleBuyOptions(user, message) {
       },
     });
   }
+}
+
+async function handleBuyConfirmPayment(user, message) {
+  await sendText({
+    user,
+    text: "⏳Your transaction is now processing, your wallet will be credited as soon as payment is confirmed",
+  });
 }
 
 async function handleSell(user, message) {
@@ -810,6 +827,7 @@ module.exports = {
   handleBuy,
   handleBuySelect,
   handleBuyOptions,
+  handleBuyConfirmPayment,
   handleSell,
   handleSellWalletSelect,
   handleSellAccountSelect,
