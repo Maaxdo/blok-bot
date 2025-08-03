@@ -103,7 +103,7 @@ async function handleBankOptions(user, message) {
   );
   user.metadata = {
     ...metadata,
-    banks,
+    banks: items,
   };
   user.state = "/accounts:banks:select";
   await user.save();
