@@ -44,6 +44,7 @@ const {
   handleAccountDeleteSelect,
   handleAccountDeleteCancel,
   handleAccountDeleteConfirm,
+  handleBankOptions,
 } = require("./accounts");
 const {
   handleTransactions,
@@ -177,6 +178,10 @@ const commands = [
     function: auth(handleAccountAdd, false, false),
   },
   {
+    command: "/accounts:banks",
+    function: auth(handleBankOptions, false, false),
+  },
+  {
     command: "/accounts:add:number",
     function: auth(handleAccountAddNumber, false, false),
   },
@@ -187,14 +192,6 @@ const commands = [
   {
     command: "/accounts:add:confirm",
     function: auth(handleAccountAddConfirm, false, false),
-  },
-  {
-    command: "/accounts:banks:next",
-    function: auth(handleBanksNext, false, false),
-  },
-  {
-    command: "/accounts:banks:prev",
-    function: auth(handleBanksPrev, false, false),
   },
   {
     command: "/accounts:banks:select",

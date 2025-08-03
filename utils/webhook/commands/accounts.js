@@ -1,44 +1,15 @@
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
-const { errorParser } = require("../../common/errorParser");
+const { errorParser, zodErrorParser } = require("../../common/errorParser");
 const { cache } = require("../../common/cache");
 const { paginate } = require("../../common/paginate");
-
-function getButtons(paginate) {
-  if (paginate.hasNextPage && paginate.hasPrevPage) {
-    return [
-      {
-        type: "REPLY",
-        id: "/accounts:banks:next",
-        title: "Next",
-      },
-      {
-        type: "REPLY",
-        id: "/accounts:banks:prev",
-        title: "Previous",
-      },
-    ];
-  }
-
-  if (paginate.hasNextPage) {
-    return [
-      {
-        type: "REPLY",
-        id: "/accounts:banks:next",
-        title: "Next",
-      },
-    ];
-  }
-
-  return [
-    {
-      type: "REPLY",
-      id: "/accounts:banks:prev",
-      title: "Previous",
-    },
-  ];
-}
+const { getPaginationButtons } = require("../../common/pagination");
+const {
+  sendText,
+  sendInteractiveButtons,
+} = require("../../../helpers/bot/infobip");
+const { BankSearchSchema } = require("../../schema/accounts");
 
 async function getBanks() {
   return BlokAxios({
@@ -105,133 +76,59 @@ async function handleAccounts(user, message) {
 }
 
 async function handleAccountAdd(user, message) {
+  await sendText({
+    user,
+    text: "Enter the first three letters of the bank you want to add an account to",
+  });
+  user.state = "/accounts:banks";
+  await user.save();
+}
+
+async function handleBankOptions(user, message) {
   const metadata = user.metadata;
-  const banks = await cache("banks", getBanks);
-  const paginated = paginate(banks, 1, 20);
-  const { items, offset, hasPrevPage, hasNextPage } = paginated;
+  const validator = BankSearchSchema.safeParse({
+    bank: message.trim(),
+  });
+
+  if (!validator.success) {
+    await sendText({
+      user,
+      text: `⚠️ Invalid options provided\n${zodErrorParser(validator)}`,
+    });
+    return;
+  }
+
+  const banks = await cache("banks", getBanks).filter((bank) =>
+    bank.name.toLowerCase().startsWith(message.trim().toLowerCase()),
+  );
   user.metadata = {
     ...metadata,
-    page: 1,
-    hasPrevPage,
-    hasNextPage,
+    banks,
   };
   user.state = "/accounts:banks:select";
   await user.save();
-  const banksString = items
-    .map(
-      (bank, index) =>
-        `${offset === 0 ? index + 1 : offset + index + 1} -  *${bank.name}*`,
-    )
+  const banksString = banks
+    .map((bank, index) => `${index + 1} -  *${bank.name}*`)
     .join("\n");
 
-  const text = `Select the bank you want to add an account to :\n\n${banksString}\n\nReply with next or previous to navigate`;
+  const text = `Select the bank you want to add an account to :\n\n${banksString}`;
 
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/buttons",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text,
-        },
-        action: {
-          buttons: getButtons(paginated),
-        },
+  await sendInteractiveButtons(
+    user,
+    [
+      {
+        type: "REPLY",
+        id: "/accounts:add",
+        title: "Search again",
       },
-    },
-  });
-}
-
-async function handleBanksNext(user, message) {
-  const metadata = user.metadata;
-  const banks = await cache("banks", getBanks);
-
-  if (metadata.hasNextPage) {
-    const paginated = paginate(banks, metadata.page + 1, 20);
-    const { items, offset, hasPrevPage, hasNextPage } = paginated;
-    const banksString = items
-      .map(
-        (bank, index) =>
-          `${offset === 0 ? index + 1 : offset + index + 1} -  *${bank.name}*`,
-      )
-      .join("\n");
-    const text = `Select the bank you want to add an account to :\n\n${banksString}\n\nReply with next or previous to navigate`;
-
-    user.metadata = {
-      ...metadata,
-      page: metadata.page + 1,
-      hasPrevPage,
-      hasNextPage,
-    };
-    user.state = "/accounts:banks:select";
-    await user.save();
-
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text,
-          },
-          action: {
-            buttons: getButtons(paginated),
-          },
-        },
-      },
-    });
-  }
-}
-async function handleBanksPrev(user, message) {
-  const metadata = user.metadata;
-  const banks = await cache("banks", getBanks);
-
-  if (metadata.hasPrevPage) {
-    const paginated = paginate(banks, metadata.page - 1, 20);
-    const { items, offset, hasPrevPage, hasNextPage } = paginated;
-    const banksString = items
-      .map(
-        (bank, index) =>
-          `${offset === 0 ? index + 1 : offset + index + 1} -  *${bank.name}*`,
-      )
-      .join("\n");
-    const text = `Select the bank you want to add an account to :\n\n${banksString}\n\nReply with next or previous to navigate`;
-
-    user.metadata = {
-      ...metadata,
-      page: metadata.page - 1,
-      hasPrevPage,
-      hasNextPage,
-    };
-    user.state = "/accounts:banks:select";
-    await user.save();
-
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text,
-          },
-          action: {
-            buttons: getButtons(paginated),
-          },
-        },
-      },
-    });
-  }
+    ],
+    text,
+  );
 }
 
 async function handleBankSelect(user, message) {
   const metadata = user.metadata;
-  const banks = await cache("banks", getBanks);
+  const banks = metadata.banks;
   const selectedIndex = parseInt(message.trim()) - 1;
   const selectedBank = banks[selectedIndex];
 
@@ -645,11 +542,10 @@ module.exports = {
   handleAccounts,
   handleAccountAdd,
   handleBankSelect,
-  handleBanksNext,
-  handleBanksPrev,
   handleAccountAddNumber,
   handleAccountAddCancel,
   handleAccountAddConfirm,
+  handleBankOptions,
   handleAccountDelete,
   handleAccountDeleteSelect,
   handleAccountDeleteConfirm,
