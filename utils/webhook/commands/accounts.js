@@ -113,9 +113,9 @@ async function handleBankOptions(user, message) {
 
   const text = `Select the bank you want to add an account to :\n\n${banksString}`;
 
-  await sendInteractiveButtons(
+  await sendInteractiveButtons({
     user,
-    [
+    buttons: [
       {
         type: "REPLY",
         id: "/accounts:add",
@@ -123,7 +123,7 @@ async function handleBankOptions(user, message) {
       },
     ],
     text,
-  );
+  });
 }
 
 async function handleBankSelect(user, message) {
