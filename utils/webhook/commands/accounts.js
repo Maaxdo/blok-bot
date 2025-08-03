@@ -97,8 +97,8 @@ async function handleBankOptions(user, message) {
     });
     return;
   }
-
-  const banks = await cache("banks", getBanks).filter((bank) =>
+  const banks = await cache("banks", getBanks);
+  const items = banks.filter((bank) =>
     bank.name.toLowerCase().startsWith(message.trim().toLowerCase()),
   );
   user.metadata = {
@@ -107,7 +107,7 @@ async function handleBankOptions(user, message) {
   };
   user.state = "/accounts:banks:select";
   await user.save();
-  const banksString = banks
+  const banksString = items
     .map((bank, index) => `${index + 1} -  *${bank.name}*`)
     .join("\n");
 
