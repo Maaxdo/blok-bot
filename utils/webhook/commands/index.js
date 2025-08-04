@@ -8,6 +8,9 @@ const {
   handleLoginConfirm,
   handleRegisterSendOtp,
   handleRegisterVerifyOtp,
+  handleLogout,
+  handleLogoutConfirm,
+  handleLogoutCancel,
 } = require("./auth");
 
 const { handleMenu } = require("./menu");
@@ -88,6 +91,18 @@ const commands = [
   {
     command: "/login:confirm",
     function: handleLoginConfirm,
+  },
+  {
+    command: "/logout",
+    function: handleLogout,
+  },
+  {
+    command: "/logout:confirm",
+    function: handleLogoutConfirm,
+  },
+  {
+    command: "/logout:cancel",
+    function: handleLogoutCancel,
   },
   {
     command: "/kyc",

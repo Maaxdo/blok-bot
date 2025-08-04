@@ -4,6 +4,11 @@ const { handleMenu } = require("./menu");
 const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
 const { errorParser, zodErrorParser } = require("../../common/errorParser");
+const {
+  sendFlow,
+  sendInteractiveButtons,
+  sendText,
+} = require("../../../helpers/bot/infobip");
 
 async function sendAuthPrompt(user) {
   const metadata = user.metadata?.userId ? user.metadata : null;
@@ -497,6 +502,35 @@ async function handleLoginConfirm(user, message) {
   }
 }
 
+async function handleLogout(user) {
+  await sendInteractiveButtons({
+    user,
+    text: "⬅️ Are you sure you want to logout?",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/logout:confirm",
+        title: "Yes",
+      },
+      {
+        type: "REPLY",
+        id: "/logout:cancel",
+        title: "No",
+      },
+    ],
+  });
+}
+
+async function handleLogoutConfirm(user, message) {
+  user.metadata = null;
+  user.state = "/start";
+  await user.save();
+}
+
+async function handleLogoutCancel(user, message) {
+  await sendText({ user, text: "Logout cancelled" });
+}
+
 module.exports = {
   handleViewProfile,
   sendAuthPrompt,
@@ -507,4 +541,7 @@ module.exports = {
   handleLoginConfirm,
   handleRegisterSendOtp,
   handleRegisterVerifyOtp,
+  handleLogout,
+  handleLogoutConfirm,
+  handleLogoutCancel,
 };

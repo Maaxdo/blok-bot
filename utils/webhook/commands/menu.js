@@ -30,6 +30,10 @@ const options = [
     title: "View your profile",
     id: "/profile",
   },
+  {
+    title: "Logout",
+    id: "/logout",
+  },
 ];
 
 const optionsString = options

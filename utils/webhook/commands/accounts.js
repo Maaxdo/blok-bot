@@ -252,39 +252,36 @@ async function handleAccountAddConfirm(user, message) {
         is_default: false,
       },
     });
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "✅ Account added successfully!\nYou can now view your accounts",
-            action: {
-              buttons: [
-                {
-                  type: "REPLY",
-                  id: "/accounts",
-                  title: "View accounts",
-                },
-              ],
-            },
-          },
+
+    await sendInteractiveButtons({
+      user,
+      text: "✅ Account added successfully!\nYou can now view your accounts",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts",
+          title: "View accounts",
         },
-      },
+      ],
     });
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `⚠️ An error occurred\n${errorParser(e)}`,
+    user.state = "/accounts";
+    await user.save();
+    await sendInteractiveButtons({
+      user,
+      text: `⚠️ An error occurred\n${errorParser(e)}`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:add:confirm",
+          title: "Try again",
         },
-      },
+        {
+          type: "REPLY",
+          id: "/accounts:add:cancel",
+          title: "Cancel",
+        },
+      ],
     });
   }
 }
