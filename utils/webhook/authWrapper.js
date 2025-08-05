@@ -59,7 +59,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
         },
       }).then((res) => res.data.wallets);
 
-      if (WALLET_TYPES.length === wallets) {
+      if (WALLET_TYPES.length === wallets.length) {
         user.metadata = {
           ...metadata,
           hasWallet: true,
