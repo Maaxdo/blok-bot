@@ -1,6 +1,8 @@
 const { twilioClient } = require("../../helpers/webhook/twilio");
 const { InfoBipAxios } = require("../../helpers/webhook/infobip");
 const { infobip } = require("../../config/app");
+const { BlokAxios } = require("../../helpers/webhook/blokbot");
+const { WALLET_TYPES } = require("../../constants/wallets");
 
 function auth(func, checkKyc = false, checkWallet = false) {
   return async (user, message) => {
@@ -50,6 +52,23 @@ function auth(func, checkKyc = false, checkWallet = false) {
       return;
     }
     if (checkWallet && !metadata.hasWallet) {
+      const wallets = await BlokAxios({
+        url: "/wallet",
+        params: {
+          user_id: metadata.userId,
+        },
+      }).then((res) => res.data.wallets);
+
+      if (WALLET_TYPES.length === wallets) {
+        user.metadata = {
+          ...metadata,
+          hasWallet: true,
+        };
+        await user.save();
+        await func(user, message);
+        return;
+      }
+
       await InfoBipAxios({
         url: "/whatsapp/1/message/interactive/buttons",
         method: "POST",
