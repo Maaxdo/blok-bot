@@ -9,6 +9,17 @@ function paginate(list, page, perPage) {
   };
 }
 
+function paginateExternally(total, page, perPage) {
+  const offset = (page - 1) * perPage;
+  return {
+    total,
+    page,
+    hasNextPage: total > offset + perPage,
+    hasPrevPage: page > 1,
+  };
+}
+
 module.exports = {
   paginate,
+  paginateExternally,
 };

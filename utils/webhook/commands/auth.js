@@ -339,16 +339,9 @@ async function handleRegistrationConfirm(user, message) {
   };
 
   await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: "Registration successful!\nType in a 4 digit pin to generate your wallet.",
-      },
-    },
+  await sendText({
+    user,
+    text: "Registration successful!\nType in a 4 digit pin to generate your wallet.",
   });
 }
 

@@ -138,7 +138,6 @@ async function handleGenerateWallet(user, message) {
     return;
   }
   const metadata = user.metadata;
-  // TODO: Check whether user has wallet before creating
 
   try {
     const wallets = await BlokAxios({
@@ -176,41 +175,19 @@ async function handleGenerateWallet(user, message) {
       hasWallet: true,
     };
     await user.save();
-
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Congratulations!🎉\nWallet generation was successful!. Verify your kyc with /kyc",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/kyc",
-                title: "Verify KYC",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Congratulations!🎉\nWallet generation was successful!. Verify your kyc with /kyc",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/kyc",
+          title: "Verify KYC",
         },
-      },
+      ],
     });
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `*An error occured* ⚠️\n${errorParser(e)}`,
-        },
-      },
-    });
+    await sendText({ user, text: `*An error occurred* ⚠️\n${errorParser(e)}` });
   }
 }
 

@@ -154,7 +154,7 @@ const commands = [
   },
   {
     command: "/menu",
-    function: auth(handleMenu, false),
+    function: auth(handleMenu, false, true),
   },
   {
     command: "/buy",
