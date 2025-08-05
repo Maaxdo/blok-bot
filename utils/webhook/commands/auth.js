@@ -5,7 +5,6 @@ const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
 const { errorParser, zodErrorParser } = require("../../common/errorParser");
 const {
-  sendFlow,
   sendInteractiveButtons,
   sendText,
 } = require("../../../helpers/bot/infobip");
@@ -525,6 +524,7 @@ async function handleLogoutConfirm(user, message) {
   user.metadata = null;
   user.state = "/start";
   await user.save();
+  await sendAuthPrompt(user);
 }
 
 async function handleLogoutCancel(user, message) {
