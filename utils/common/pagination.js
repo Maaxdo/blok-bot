@@ -3,13 +3,13 @@ function getPaginationButtons(paginate, commandPrefix) {
     return [
       {
         type: "REPLY",
-        id: `${commandPrefix}:next`,
-        title: "Next",
+        id: `${commandPrefix}:prev`,
+        title: "Previous",
       },
       {
         type: "REPLY",
-        id: `${commandPrefix}:prev`,
-        title: "Previous",
+        id: `${commandPrefix}:next`,
+        title: "Next",
       },
     ];
   }

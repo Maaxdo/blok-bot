@@ -15,6 +15,10 @@ const options = [
     id: "/accounts",
   },
   {
+    title: "View your transactions",
+    id: "/transactions",
+  },
+  {
     title: "Sell Crypto",
     id: "/sell",
   },

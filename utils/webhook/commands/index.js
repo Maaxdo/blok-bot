@@ -53,6 +53,8 @@ const {
 const {
   handleTransactions,
   handleTransactionsDate,
+  handleTransactionsNext,
+  handleTransactionsPrev,
 } = require("./transactions");
 
 const commands = [
@@ -239,6 +241,14 @@ const commands = [
   {
     command: "/transactions:dates",
     function: auth(handleTransactionsDate, false, false),
+  },
+  {
+    command: "/transactions:next",
+    function: auth(handleTransactionsNext, false, false),
+  },
+  {
+    command: "/transactions:prev",
+    function: auth(handleTransactionsPrev, false, false),
   },
 ];
 

@@ -31,6 +31,18 @@ async function handleTransactions(user, message) {
   await user.save();
 }
 
+function getTransactionsText(transactions) {
+  return transactions
+    .map((item) => {
+      const createdAt = new Date(item.created_at).toLocaleString();
+      const amount = `*${item.currency} ${item.amount}*`;
+      const status = item.status.toUpperCase().replaceAll("_", " ");
+      const type = item.transaction_type.toUpperCase();
+      return `Transaction type: *${type}*\nAmount: ${amount}\nStatus: *${status}*\nCreated at: *${createdAt}*\n`;
+    })
+    .join("\n\n");
+}
+
 async function handleTransactionsDate(user, message) {
   const validation = DateSchema.safeParse(message);
   const metadata = user.metadata;
@@ -48,6 +60,7 @@ async function handleTransactionsDate(user, message) {
     user.metadata = {
       ...metadata,
       ...message,
+      page: 1,
     };
     await user.save();
     const res = await BlokAxios({
@@ -55,29 +68,127 @@ async function handleTransactionsDate(user, message) {
       params: {
         start_date: message.startDate,
         end_date: message.endDate,
-        limit: 10,
+        limit: 5,
       },
     }).then((res) => res.data);
     const paginate = paginateExternally(res.total, res.page, res.limit);
-    const buttons = getPaginationButtons(paginate, "transactions");
-    const transactions = res.transactions
-      .map((item) => {
-        const createdAt = new Date(item.created_at).toLocaleString();
-        const amount = `*${item.currency} ${item.amount}*`;
-        const status = item.status.toUpperCase().replaceAll("_", " ");
-        const type = item.transaction_type.toUpperCase();
-        return `Transaction type: *${type}*\nAmount: ${amount}\nStatus: *${status}*\nCreated at: *${createdAt}*\n`;
-      })
-      .join("\n\n");
+    const buttons = getPaginationButtons(paginate, "/transactions");
 
     await sendInteractiveButtons({
       user,
-      text: transactions,
+      text: getTransactionsText(res.transactions),
       buttons,
     });
   } catch (e) {
-    await sendText({ user, text: errorParser(e) });
+    user.state = "/transactions";
+    await user.save();
+    await sendInteractiveButtons({
+      user,
+      text: errorParser(e),
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/transactions",
+          title: "Try again",
+        },
+      ],
+    });
   }
 }
 
-module.exports = { handleTransactions, handleTransactionsDate };
+async function handleTransactionsNext(user, message) {
+  const metadata = user.metadata;
+  const page = metadata.page + 1;
+
+  try {
+    user.metadata = {
+      ...metadata,
+      page,
+    };
+    await user.save();
+
+    const res = await BlokAxios({
+      url: `/transactions/${metadata.userId}`,
+      params: {
+        start_date: metadata.startDate,
+        end_date: metadata.endDate,
+        limit: 5,
+        page,
+      },
+    }).then((res) => res.data);
+    const paginate = paginateExternally(res.total, res.page, res.limit);
+    const buttons = getPaginationButtons(paginate, "/transactions");
+
+    await sendInteractiveButtons({
+      user,
+      text: getTransactionsText(res.transactions),
+      buttons,
+    });
+  } catch (e) {
+    user.state = "/transactions";
+    await user.save();
+    await sendInteractiveButtons({
+      user,
+      text: errorParser(e),
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/transactions",
+          title: "Try again",
+        },
+      ],
+    });
+  }
+}
+
+async function handleTransactionsPrev(user, message) {
+  const metadata = user.metadata;
+  const page = metadata.page - 1;
+
+  try {
+    user.metadata = {
+      ...metadata,
+      page,
+    };
+    await user.save();
+
+    const res = await BlokAxios({
+      url: `/transactions/${metadata.userId}`,
+      params: {
+        start_date: metadata.startDate,
+        end_date: metadata.endDate,
+        limit: 5,
+        page,
+      },
+    }).then((res) => res.data);
+    const paginate = paginateExternally(res.total, res.page, res.limit);
+    const buttons = getPaginationButtons(paginate, "/transactions");
+
+    await sendInteractiveButtons({
+      user,
+      text: getTransactionsText(res.transactions),
+      buttons,
+    });
+  } catch (e) {
+    user.state = "/transactions";
+    await user.save();
+    await sendInteractiveButtons({
+      user,
+      text: errorParser(e),
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/transactions",
+          title: "Try again",
+        },
+      ],
+    });
+  }
+}
+
+module.exports = {
+  handleTransactions,
+  handleTransactionsDate,
+  handleTransactionsNext,
+  handleTransactionsPrev,
+};
