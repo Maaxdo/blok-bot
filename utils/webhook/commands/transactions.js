@@ -59,7 +59,7 @@ async function handleTransactionsDate(user, message) {
   const buttons = getPaginationButtons(paginate, "transactions");
   const transactions = res.transactions
     .map((item) => {
-      const createdAt = new Date(item.created_at).toLocaleString();
+      const createdAt = new Date(item.createdAt).toLocaleString();
       const amount = `*${item.currency} ${item.amount}*`;
       const status = item.status.toUpperCase().replaceAll("_", " ");
       const type = item.transaction_type.toUpperCase();
