@@ -1,9 +1,10 @@
 const {
   sendFlow,
   sendInteractiveButtons,
+  sendText,
 } = require("../../../helpers/bot/infobip");
 const { DateSchema } = require("../../schema/transactions");
-const { zodErrorParser } = require("../../common/errorParser");
+const { zodErrorParser, errorParser } = require("../../common/errorParser");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { paginateExternally } = require("../../common/paginate");
 const { getPaginationButtons } = require("../../common/pagination");
@@ -42,36 +43,41 @@ async function handleTransactionsDate(user, message) {
     });
     return;
   }
-  user.metadata = {
-    ...metadata,
-    ...message,
-  };
-  await user.save();
-  const res = await BlokAxios({
-    url: `/transactions/${metadata.userId}`,
-    params: {
-      start_date: message.startDate,
-      end_date: message.endDate,
-      limit: 10,
-    },
-  }).then((res) => res.data);
-  const paginate = paginateExternally(res.total, res.page, res.limit);
-  const buttons = getPaginationButtons(paginate, "transactions");
-  const transactions = res.transactions
-    .map((item) => {
-      const createdAt = new Date(item.createdAt).toLocaleString();
-      const amount = `*${item.currency} ${item.amount}*`;
-      const status = item.status.toUpperCase().replaceAll("_", " ");
-      const type = item.transaction_type.toUpperCase();
-      return `Transaction type: *${type}*\nAmount: ${amount}\nStatus: *${status}*\nCreated at: *${createdAt}*\n`;
-    })
-    .join("\n\n");
 
-  await sendInteractiveButtons({
-    user,
-    text: transactions,
-    buttons,
-  });
+  try {
+    user.metadata = {
+      ...metadata,
+      ...message,
+    };
+    await user.save();
+    const res = await BlokAxios({
+      url: `/transactions/${metadata.userId}`,
+      params: {
+        start_date: message.startDate,
+        end_date: message.endDate,
+        limit: 10,
+      },
+    }).then((res) => res.data);
+    const paginate = paginateExternally(res.total, res.page, res.limit);
+    const buttons = getPaginationButtons(paginate, "transactions");
+    const transactions = res.transactions
+      .map((item) => {
+        const createdAt = new Date(item.createdAt).toLocaleString();
+        const amount = `*${item.currency} ${item.amount}*`;
+        const status = item.status.toUpperCase().replaceAll("_", " ");
+        const type = item.transaction_type.toUpperCase();
+        return `Transaction type: *${type}*\nAmount: ${amount}\nStatus: *${status}*\nCreated at: *${createdAt}*\n`;
+      })
+      .join("\n\n");
+
+    await sendInteractiveButtons({
+      user,
+      text: transactions,
+      buttons,
+    });
+  } catch (e) {
+    await sendText({ user, text: errorParser(e) });
+  }
 }
 
 module.exports = { handleTransactions, handleTransactionsDate };
