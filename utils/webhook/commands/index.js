@@ -152,7 +152,7 @@ const commands = [
   },
   {
     command: "/my-assets",
-    function: auth(handleAssets, true, true),
+    function: auth(handleAssets, false, false),
   },
   {
     command: "/menu",
