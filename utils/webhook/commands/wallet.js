@@ -774,7 +774,11 @@ async function handleDepositNetworkSelect(user, message) {
 
   await sendText({
     user,
-    text: `*Here is your deposit address for ${metadata.wallet} on ${network} network* 📄\n\n${address}`,
+    text: `Here is your deposit address for ${metadata.wallet} on ${network} network 📄\n\n*${address}*`,
+  });
+  await sendText({
+    user,
+    text: `*${address}*`,
   });
 }
 
