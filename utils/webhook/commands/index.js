@@ -128,15 +128,15 @@ const commands = [
   },
   {
     command: "/deposit",
-    function: auth(handleDeposit, true, true),
+    function: auth(handleDeposit, false, false),
   },
   {
     command: "/deposit:wallet",
-    function: auth(handleDepositWalletSelect, true, true),
+    function: auth(handleDepositWalletSelect, false, false),
   },
   {
     command: "/deposit:network",
-    function: auth(handleDepositNetworkSelect, true, true),
+    function: auth(handleDepositNetworkSelect, false, false),
   },
   {
     command: "/withdraw",

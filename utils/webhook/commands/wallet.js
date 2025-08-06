@@ -3,6 +3,7 @@ const {
   DepositSchema,
   WithdrawSchema,
   BuySchema,
+  WalletSchema,
 } = require("../../schema/wallet");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../../constants/wallets");
@@ -14,6 +15,7 @@ const {
   sendInteractiveButtons,
   sendText,
 } = require("../../../helpers/bot/infobip");
+const { cache } = require("../../common/cache");
 
 const getChunkedWalletTypes = () => {
   const chunkedWalletTypes = chunkify(WALLET_TYPES, 3);
@@ -26,23 +28,15 @@ const getChunkedWalletTypes = () => {
   });
 };
 
-async function sendWalletOptions(user) {
+async function sendWalletOptions(
+  user,
+  text = "Choose from the available wallet options",
+) {
   for (const chunk of getChunkedWalletTypes()) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Choose from the available wallet options",
-          },
-          action: {
-            buttons: chunk,
-          },
-        },
-      },
+    await sendInteractiveButtons({
+      user,
+      text,
+      buttons: chunk,
     });
   }
 }
@@ -189,91 +183,6 @@ async function handleGenerateWallet(user, message) {
   } catch (e) {
     await sendText({ user, text: `*An error occurred* ⚠️\n${errorParser(e)}` });
   }
-}
-
-async function handleDeposit(user, message) {
-  await sendWalletOptions(user);
-
-  user.state = "/deposit:wallet";
-  await user.save();
-}
-
-async function handleDepositWalletSelect(user, message) {
-  const wallet = message.trim().toUpperCase();
-  const validate = DepositSchema.safeParse({ wallet });
-
-  if (!validate.success) {
-    await sendWalletOptions(user);
-    return;
-  }
-
-  const prev = user.metadata;
-  user.metadata = {
-    ...prev,
-    wallet,
-  };
-
-  user.state = "/deposit:network";
-  await user.save();
-
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/buttons",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: `Choose from the available networks for ${wallet}`,
-        },
-        action: {
-          buttons: [
-            {
-              type: "REPLY",
-              id: "testnet",
-              title: "Testnet",
-            },
-          ],
-        },
-      },
-    },
-  });
-}
-
-async function handleDepositNetworkSelect(user, message) {
-  const network = message.trim().toUpperCase();
-  const metadata = user.metadata;
-
-  const res = await BlokAxios({
-    url: "/crypto/deposit",
-    method: "POST",
-    data: {
-      user_id: metadata.userId,
-      wallet_type: metadata.wallet,
-      logo_url: "string",
-      currency_name: "NGN",
-      network,
-    },
-  }).then((res) => res.data);
-
-  user.state = "/menu";
-  user.metadata = {
-    token: metadata.token,
-    userId: metadata.userId,
-  };
-  await user.save();
-
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: `*Deposit Info* ℹ️\n\n*Wallet*: ${res.wallet_type}\n*Wallet address*: ${res.address}\n*Network*: ${res.network}`,
-      },
-    },
-  });
 }
 
 async function handleWithdraw(user, message) {
@@ -789,6 +698,84 @@ async function handleSellOptions(user, message) {
       },
     });
   }
+}
+
+async function handleDeposit(user, message) {
+  user.state = "/deposit:wallet";
+  await user.save();
+  await sendWalletOptions(
+    user,
+    "Kindly select the token you would like to deposit into",
+  );
+}
+
+async function handleDepositWalletSelect(user, message) {
+  const wallet = message.trim();
+  const validator = WalletSchema.safeParse({ wallet });
+
+  if (!validator.success) {
+    await sendInteractiveButtons({
+      user,
+      text: `⚠️ An error occured\n${zodErrorParser(validator)}`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/deposit",
+          title: "Try Again",
+        },
+      ],
+    });
+    return;
+  }
+
+  const metadata = user.metadata;
+  user.metadata = {
+    ...metadata,
+    wallet,
+  };
+  user.state = "/deposit:network";
+  await user.save();
+  const cryptos = await cache("cryptos", async () => {
+    const response = await BlokAxios({
+      url: "/crypto/available",
+    });
+    return response.data;
+  });
+
+  const networks =
+    cryptos.find((item) => item.symbol === wallet)?.networks || [];
+
+  await sendInteractiveButtons({
+    user,
+    text: `Select the network you would like to deposit into for ${wallet}`,
+    buttons: networks.map((network) => ({
+      type: "REPLY",
+      id: network,
+      title: network,
+    })),
+  });
+}
+
+async function handleDepositNetworkSelect(user, message) {
+  const network = message.trim();
+  const metadata = user.metadata;
+
+  // Add network validation and network field to api call
+  const address = await BlokAxios({
+    url: "/crypto/deposit",
+    method: "POST",
+    data: {
+      user_id: metadata.userId,
+      wallet_type: metadata.wallet,
+      logo_url: "string",
+      currency_name: metadata.wallet,
+    },
+  }).then((res) => res.data.address);
+
+  await sendText({
+    user,
+    text: `*Here is your deposit address for ${metadata.wallet} on ${network} network* 📄\n\n${address}`,
+  });
 }
 
 module.exports = {

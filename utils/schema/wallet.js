@@ -16,6 +16,10 @@ const DepositSchema = z.object({
   wallet: z.enum(["USDT", "SOL", "BTC", "ETH", "BNB"]),
 });
 
+const WalletSchema = z.object({
+  wallet: z.enum(["USDT", "SOL", "BTC", "ETH", "BNB"]),
+});
+
 const WithdrawSchema = z.object({
   amount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/, {
     message: "Amount must be a valid number",
@@ -36,4 +40,5 @@ module.exports = {
   DepositSchema,
   WithdrawSchema,
   BuySchema,
+  WalletSchema,
 };
