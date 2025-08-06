@@ -733,27 +733,34 @@ async function handleDepositWalletSelect(user, message) {
     ...metadata,
     wallet,
   };
-  user.state = "/deposit:network";
   await user.save();
-  const cryptos = await cache("cryptos", async () => {
-    const response = await BlokAxios({
-      url: "/crypto/available",
+
+  if (wallet === "USDT") {
+    user.state = "/deposit:network";
+    await user.save();
+    const cryptos = await cache("cryptos", async () => {
+      const response = await BlokAxios({
+        url: "/crypto/available",
+      });
+      return response.data;
     });
-    return response.data;
-  });
 
-  const networks =
-    cryptos.find((item) => item.symbol === wallet)?.networks || [];
+    const networks =
+      cryptos.find((item) => item.symbol === wallet)?.networks || [];
 
-  await sendInteractiveButtons({
-    user,
-    text: `Select the network you would like to deposit into for ${wallet}`,
-    buttons: networks.map((network) => ({
-      type: "REPLY",
-      id: network,
-      title: network,
-    })),
-  });
+    await sendInteractiveButtons({
+      user,
+      text: `Select the network you would like to deposit into for ${wallet}`,
+      buttons: networks.map((network) => ({
+        type: "REPLY",
+        id: network,
+        title: network,
+      })),
+    });
+    return;
+  }
+
+  await handleDepositNetworkSelect(user, "mainnet");
 }
 
 async function handleDepositNetworkSelect(user, message) {
