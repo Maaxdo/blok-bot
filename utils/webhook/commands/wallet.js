@@ -772,6 +772,9 @@ async function handleDepositNetworkSelect(user, message) {
     },
   }).then((res) => res.data.address);
 
+  user.state = "/menu";
+  await user.save();
+
   await sendText({
     user,
     text: `Here is your deposit address for ${metadata.wallet} on ${network} network 📄\n\n*${address}*`,
