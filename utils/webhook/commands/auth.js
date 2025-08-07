@@ -13,36 +13,23 @@ async function sendAuthPrompt(user) {
   const metadata = user.metadata?.userId ? user.metadata : null;
 
   if (!metadata) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Hello!👋\nWelcome to Blok AI. Your fast and secure way to transact crypto.\nLet's get started.",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/register",
-                title: "Create wallet",
-              },
-              {
-                type: "REPLY",
-                id: "/login",
-                title: "Login",
-              },
-            ],
-          },
-          footer: {
-            text: "Powered by Blok AI",
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Welcome to Blok AI! Please select an option to continue.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/register",
+          title: "Create an account",
         },
-      },
+        {
+          type: "REPLY",
+          id: "/login",
+          title: "Login",
+        },
+      ],
     });
+
     return;
   }
 

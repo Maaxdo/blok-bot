@@ -3,6 +3,7 @@ const { commands } = require("../../utils/webhook/commands");
 const { extractMessage } = require("../../utils/webhook/extractMessage");
 const { handleMenu } = require("../../utils/webhook/commands/menu");
 const { User } = require("../../db/models");
+const { handleSupport } = require("../../utils/webhook/commands/support");
 
 function handleGetWebhook(req, res) {
   const challenge = req.query["hub.challenge"];
@@ -57,7 +58,7 @@ async function handlePostWebhook(req, res) {
       await commandState.function(user, message);
       return res.status(200).send("EVENT_RECEIVED: State");
     }
-    await handleMenu(user, message);
+    await handleSupport(user, message);
 
     return res.status(200).send("EVENT_RECEIVED: Menu");
   } catch (err) {

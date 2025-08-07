@@ -11,6 +11,11 @@ function getPaginationButtons(paginate, commandPrefix) {
         id: `${commandPrefix}:next`,
         title: "Next",
       },
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
     ];
   }
 
@@ -21,6 +26,11 @@ function getPaginationButtons(paginate, commandPrefix) {
         id: `${commandPrefix}:next`,
         title: "Next",
       },
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
     ];
   }
 
@@ -29,6 +39,11 @@ function getPaginationButtons(paginate, commandPrefix) {
       type: "REPLY",
       id: `${commandPrefix}:prev`,
       title: "Previous",
+    },
+    {
+      type: "REPLY",
+      id: "/menu",
+      title: "Back to menu",
     },
   ];
 }

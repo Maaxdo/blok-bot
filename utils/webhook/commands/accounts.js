@@ -329,7 +329,7 @@ async function handleAccountDelete(user, message) {
         `${index + 1} - ${account.bank_name} *${account.account_number}*`,
     )
     .join("\n");
-  const text = `Select the account you want to delete :\n\n${accounts}`;
+  const text = `Select the account you want to delete.\nKindly type “1” to select the first account :\n\n${accounts}`;
   user.state = "/accounts:delete:select";
   await user.save();
   await InfoBipAxios({

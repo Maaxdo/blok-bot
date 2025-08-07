@@ -7,6 +7,10 @@ const options = [
     id: "/my-assets",
   },
   {
+    title: "View rates",
+    id: "/rates",
+  },
+  {
     title: "Buy Crypto",
     id: "/buy",
   },

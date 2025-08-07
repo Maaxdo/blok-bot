@@ -38,8 +38,6 @@ const { handleStartKyc, handleKycBVN } = require("./kyc");
 const {
   handleAccounts,
   handleAccountAdd,
-  handleBanksNext,
-  handleBanksPrev,
   handleBankSelect,
   handleAccountAddNumber,
   handleAccountAddCancel,
@@ -56,6 +54,7 @@ const {
   handleTransactionsNext,
   handleTransactionsPrev,
 } = require("./transactions");
+const { handleRates } = require("./rates");
 
 const commands = [
   {
@@ -113,6 +112,10 @@ const commands = [
   {
     command: "/kyc:bvn",
     function: auth(handleKycBVN),
+  },
+  {
+    command: "/rates",
+    function: handleRates,
   },
   {
     command: "/wallet:initiate",

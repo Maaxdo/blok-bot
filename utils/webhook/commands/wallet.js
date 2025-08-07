@@ -14,6 +14,7 @@ const { chunkify } = require("../../common/chunkify");
 const {
   sendInteractiveButtons,
   sendText,
+  sendFlow,
 } = require("../../../helpers/bot/infobip");
 const { cache } = require("../../common/cache");
 
@@ -52,21 +53,14 @@ async function handleAssets(user, message) {
   const walletsInfo = wallets
     .map(
       (wallet) =>
-        `Wallet type 💲: *${wallet.wallet_type}*\nBalance 💰: *${wallet.balance}*\nAddress 📄: *${wallet.address}*\nActive ✅: *${wallet.is_active ? "Yes" : "No"}*\nLocked 🔒: *${wallet.is_locked ? "Yes" : "No"}*`,
+        `Wallet type 💲: *${wallet.wallet_type}*\nBalance 💰: *${wallet.balance}*\nAddress 📄: ${wallet.address}`,
     )
     .join("\n\n");
 
   const text = `*Here are your assets* ✅\n\n${walletsInfo}`;
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text,
-      },
-    },
+  await sendText({
+    user,
+    text,
   });
 }
 
@@ -358,30 +352,22 @@ async function handleBuyOptions(user, message) {
 
   if (!validator.success) {
     const error = zodErrorParser(validator);
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `The details you provided are invalid.\n${error}`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "24035309786120142",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "BUY_SCREEN",
-            },
-          },
+    await sendFlow({
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "24035309786120142",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "BUY_SCREEN",
         },
       },
+      text: `The details you provided are invalid.\n${error}`,
+      user,
     });
+
     return;
   }
 
@@ -397,12 +383,12 @@ async function handleBuyOptions(user, message) {
         amount: message.amount,
       },
     }).then((res) => res.data);
-    user.state = "/menu";
+    user.state = null;
     await user.save();
 
     await sendInteractiveButtons({
       user,
-      text: `Please transfer the required amount to the details provided to complete your transaction\n\nAmount: *₦ ${res.naira_equivalent.toLocaleString()}*\nAccount number: *${res.deposit_details.account_number}*\nBank name: *${res.deposit_details.bank_name}*\nAccount number: *${res.deposit_details.account_name}*`,
+      text: `Please transfer the required amount to the details provided to complete your transaction\n\nAmount: *₦ ${res.naira_equivalent.toLocaleString()}*\nAccount number: ${res.deposit_details.account_number}\nBank name: *${res.deposit_details.bank_name}*\nAccount name: *${res.deposit_details.account_name}*`,
       buttons: [
         {
           type: "REPLY",
@@ -413,7 +399,7 @@ async function handleBuyOptions(user, message) {
     });
     await sendText({
       user,
-      text: `*${res.deposit_details.account_number}*`,
+      text: `${res.deposit_details.account_number}`,
     });
   } catch (e) {
     await InfoBipAxios({
@@ -494,7 +480,7 @@ async function handleSellWalletSelect(user, message) {
         `${index + 1} - ${account.bank_name} *${account.account_number}*`,
     )
     .join("\n");
-  const text = `Choose from your available accounts :\n\n${accountsList}`;
+  const text = `Choose from your available accounts \nKindly type “1” to select the first account:\n\n${accountsList}`;
   await InfoBipAxios({
     url: "/whatsapp/1/message/text",
     method: "POST",
