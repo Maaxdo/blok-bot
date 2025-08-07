@@ -3,8 +3,6 @@ const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
 const { errorParser, zodErrorParser } = require("../../common/errorParser");
 const { cache } = require("../../common/cache");
-const { paginate } = require("../../common/paginate");
-const { getPaginationButtons } = require("../../common/pagination");
 const {
   sendText,
   sendInteractiveButtons,
@@ -33,32 +31,26 @@ async function handleAccounts(user, message) {
           )
           .join("\n\n");
 
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text,
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts:add",
-                title: "Add account",
-              },
-              {
-                type: "REPLY",
-                id: "/accounts:delete",
-                title: "Delete an account",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:add",
+          title: "Add account",
         },
-      },
+        {
+          type: "REPLY",
+          id: "/accounts:delete",
+          title: "Delete an account",
+        },
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
     });
   } catch (e) {
     await InfoBipAxios({
@@ -76,10 +68,18 @@ async function handleAccounts(user, message) {
 }
 
 async function handleAccountAdd(user, message) {
-  await sendText({
+  await sendInteractiveButtons({
     user,
     text: "Enter the first three letters of the bank you want to add an account to",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
+    ],
   });
+
   user.state = "/accounts:banks";
   await user.save();
 }
@@ -121,6 +121,11 @@ async function handleBankOptions(user, message) {
         id: "/accounts:add",
         title: "Search again",
       },
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
     ],
     text,
   });
@@ -149,6 +154,11 @@ async function handleBankSelect(user, message) {
                 type: "REPLY",
                 id: "/accounts:add",
                 title: "Add account",
+              },
+              {
+                type: "REPLY",
+                id: "/menu",
+                title: "Back to menu",
               },
             ],
           },
@@ -196,44 +206,32 @@ async function handleAccountAddNumber(user, message) {
       accountNumber,
     };
     await user.save();
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `Account details:\n\nAccount number: *${accountNumber}*\nAccount name: *${res.account_name}*`,
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts:add:confirm",
-                title: "Confirm",
-              },
-              {
-                type: "REPLY",
-                id: "/accounts:add:cancel",
-                title: "Cancel",
-              },
-            ],
-          },
+
+    await sendInteractiveButtons({
+      user,
+      text: `Account details:\n\nAccount number: *${accountNumber}*\nAccount name: *${res.account_name}*`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:add:confirm",
+          title: "Confirm",
         },
-      },
+        {
+          type: "REPLY",
+          id: "/accounts:add:cancel",
+          title: "Cancel",
+        },
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
     });
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `⚠️ An error occurred\n${errorParser(e)}`,
-        },
-      },
+    await sendText({
+      user,
+      text: `⚠️ An error occurred\n${errorParser(e)}`,
     });
   }
 }
@@ -261,6 +259,11 @@ async function handleAccountAddConfirm(user, message) {
           type: "REPLY",
           id: "/accounts",
           title: "View accounts",
+        },
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
         },
       ],
     });
@@ -294,27 +297,17 @@ async function handleAccountAddCancel(user, message) {
     userId: metadata.userId,
   };
   await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/buttons",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: "Account add cancelled!",
-        },
-        action: {
-          buttons: [
-            {
-              type: "REPLY",
-              id: "/menu",
-              title: "View menu",
-            },
-          ],
-        },
+
+  await sendInteractiveButtons({
+    user,
+    text: "Account add cancelled!",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "View menu",
       },
-    },
+    ],
   });
 }
 
@@ -332,16 +325,16 @@ async function handleAccountDelete(user, message) {
   const text = `Select the account you want to delete.\nKindly type “1” to select the first account :\n\n${accounts}`;
   user.state = "/accounts:delete:select";
   await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text,
+  await sendInteractiveButtons({
+    text,
+    user,
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
       },
-    },
+    ],
   });
 }
 
@@ -351,28 +344,18 @@ async function handleAccountDeleteSelect(user, message) {
   const selectedIndex = parseInt(message.trim()) - 1;
 
   if (isNaN(selectedIndex)) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Invalid account selected. Please try again.",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts:delete",
-                title: "Delete account",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Invalid input. Please enter a valid account number.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:delete",
+          title: "Delete account",
         },
-      },
+      ],
     });
+
     return;
   }
   const res = await BlokAxios({
@@ -382,28 +365,18 @@ async function handleAccountDeleteSelect(user, message) {
   const selectedAccount = res[selectedIndex];
 
   if (!selectedAccount) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Invalid account selected. Please try again.",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts:delete",
-                title: "Delete account",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "⚠️ Invalid account selected. Please try again.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:delete",
+          title: "Delete account",
         },
-      },
+      ],
     });
+
     return;
   }
 
@@ -415,32 +388,26 @@ async function handleAccountDeleteSelect(user, message) {
   };
   await user.save();
 
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/buttons",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text,
-        },
-        action: {
-          buttons: [
-            {
-              type: "REPLY",
-              id: "/accounts:delete:confirm",
-              title: "Confirm",
-            },
-            {
-              type: "REPLY",
-              id: "/accounts:delete:cancel",
-              title: "Cancel",
-            },
-          ],
-        },
+  await sendInteractiveButtons({
+    user,
+    text,
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/accounts:delete:confirm",
+        title: "Confirm",
       },
-    },
+      {
+        type: "REPLY",
+        id: "/accounts:delete:cancel",
+        title: "Cancel",
+      },
+      {
+        type: "REPLY",
+        id: "/accounts:delete",
+        title: "Delete account",
+      },
+    ],
   });
 }
 
@@ -457,48 +424,34 @@ async function handleAccountDeleteConfirm(user, message) {
     });
     user.state = "/menu";
     await user.save();
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: { text: "Account deleted successfully!" },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts",
-                title: "View accounts",
-              },
-            ],
-          },
+
+    await sendInteractiveButtons({
+      user,
+      text: "✅ Account deleted successfully!\nYou can now view your accounts",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts",
+          title: "View accounts",
         },
-      },
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
     });
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `⚠️An error occured.${errorParser(e)}\n\nPlease try again.`,
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts:delete",
-                title: "Delete account",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: `⚠️ An error occurred.${errorParser(e)}\n\nPlease try again.`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:delete",
+          title: "Delete account",
         },
-      },
+      ],
     });
   }
 }
@@ -511,27 +464,17 @@ async function handleAccountDeleteCancel(user, message) {
     userId: metadata.userId,
   };
   await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/buttons",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: "Account delete cancelled!",
-        },
-        action: {
-          buttons: [
-            {
-              type: "REPLY",
-              id: "/menu",
-              title: "View menu",
-            },
-          ],
-        },
+
+  await sendInteractiveButtons({
+    user,
+    text: "Account delete cancelled!",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "View menu",
       },
-    },
+    ],
   });
 }
 
