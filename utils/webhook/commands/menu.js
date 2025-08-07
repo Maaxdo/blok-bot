@@ -42,6 +42,10 @@ const options = [
     title: "Logout",
     id: "/logout",
   },
+  {
+    title: "Support",
+    id: "/support",
+  },
 ];
 
 const optionsString = options
