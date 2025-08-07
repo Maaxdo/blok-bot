@@ -111,7 +111,7 @@ async function handleBankOptions(user, message) {
     .map((bank, index) => `${index + 1} -  *${bank.name}*`)
     .join("\n");
 
-  const text = `Select the bank you want to add an account to :\n\n${banksString}`;
+  const text = `Select the bank you want to add an account to. Kindly pick "1" for the first option and so on:\n\n${banksString}`;
 
   await sendInteractiveButtons({
     user,
