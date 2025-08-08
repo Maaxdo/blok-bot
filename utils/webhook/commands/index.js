@@ -144,15 +144,15 @@ const commands = [
   },
   {
     command: "/withdraw",
-    function: auth(handleWithdraw, true, true),
+    function: auth(handleWithdraw, false, false),
   },
   {
     command: "/withdraw:select",
-    function: auth(handleWithdrawSelect, true, true),
+    function: auth(handleWithdrawSelect, false, false),
   },
   {
     command: "/withdraw:options",
-    function: auth(handleWithdrawOptions, true, true),
+    function: auth(handleWithdrawOptions, false, false),
   },
   {
     command: "/my-assets",

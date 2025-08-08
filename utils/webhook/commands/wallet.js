@@ -205,29 +205,20 @@ async function handleWithdrawSelect(user, message) {
   user.state = "/withdraw:options";
   await user.save();
 
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/flow",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: `I’ll need a few details to process your withdrawal for ${wallet}`,
-        },
-        action: {
-          mode: "PUBLISHED",
-          flowMessageVersion: 3,
-          flowToken: "Flow token",
-          flowId: "689305550776146",
-          callToActionButton: "Continue",
-          flowAction: "NAVIGATE",
-          flowActionPayload: {
-            screen: "WITHDRAW_SCREEN",
-          },
-        },
+  await sendFlow({
+    user,
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "689305550776146",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "WITHDRAW_SCREEN",
       },
     },
+    text: `I'll need a few details to process your withdrawal for ${wallet}`,
   });
 }
 
@@ -276,16 +267,9 @@ async function handleWithdrawOptions(user, message) {
         amount: message.amount,
       },
     });
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: "Withdrawal request received and is being processed",
-        },
-      },
+    await sendText({
+      user,
+      text: "Withdrawal request received and is being processed",
     });
   } catch (e) {
     await InfoBipAxios({
@@ -449,9 +433,16 @@ async function handleBuyOptions(user, message) {
 }
 
 async function handleBuyConfirmPayment(user, message) {
-  await sendText({
+  await sendInteractiveButtons({
     user,
     text: "⏳Your transaction is now processing, your wallet will be credited as soon as payment is confirmed",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
+    ],
   });
 }
 
@@ -898,7 +889,7 @@ async function handleDepositNetworkSelect(user, message) {
   });
   await sendText({
     user,
-    text: `*${address}*`,
+    text: address,
   });
 }
 
