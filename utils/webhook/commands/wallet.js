@@ -343,27 +343,18 @@ async function handleBuySelect(user, message) {
   user.state = "/buy:options";
   await user.save();
 
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/flow",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: `I’ll need a few details to process your transaction ${wallet}`,
-        },
-        action: {
-          mode: "PUBLISHED",
-          flowMessageVersion: 3,
-          flowToken: "Flow token",
-          flowId: "24035309786120142",
-          callToActionButton: "Continue",
-          flowAction: "NAVIGATE",
-          flowActionPayload: {
-            screen: "BUY_SCREEN",
-          },
-        },
+  await sendFlow({
+    user,
+    text: `I'll need a few details to process your transaction ${wallet}`,
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "24035309786120142",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "BUY_SCREEN",
       },
     },
   });
