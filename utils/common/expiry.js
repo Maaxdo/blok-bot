@@ -1,4 +1,4 @@
-async function getCommandExpiry(user, commandCategory) {
+function getCommandExpiry(user, commandCategory) {
   const expiry = user.metadata?.expiry;
 
   if (!expiry || expiry.commandCategory !== commandCategory) {
@@ -7,7 +7,7 @@ async function getCommandExpiry(user, commandCategory) {
 
   const currentTime = Date.now();
 
-  return expiry.datetime > currentTime;
+  return currentTime > expiry.datetime;
 }
 
 async function refreshCommandExpiry(user, commandCategory, durationInMins) {

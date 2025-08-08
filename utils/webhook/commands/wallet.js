@@ -17,6 +17,10 @@ const {
   sendFlow,
 } = require("../../../helpers/bot/infobip");
 const { cache } = require("../../common/cache");
+const {
+  refreshCommandExpiry,
+  getCommandExpiry,
+} = require("../../common/expiry");
 
 const getChunkedWalletTypes = () => {
   const chunkedWalletTypes = chunkify(WALLET_TYPES, 3);
@@ -302,9 +306,28 @@ async function handleBuy(user, message) {
   await sendWalletOptions(user);
   user.state = "/buy:select";
   await user.save();
+  await refreshCommandExpiry(user, "/buy", 20);
 }
 
 async function handleBuySelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/buy", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const wallet = message.trim().toUpperCase();
   const validate = DepositSchema.safeParse({ wallet });
   if (!validate.success) {
@@ -347,6 +370,24 @@ async function handleBuySelect(user, message) {
 }
 
 async function handleBuyOptions(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/buy", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
   const validator = BuySchema.safeParse(message);
 
@@ -427,9 +468,28 @@ async function handleSell(user, message) {
   await sendWalletOptions(user);
   user.state = "/sell:wallet:select";
   await user.save();
+  await refreshCommandExpiry(user, "/sell", 20);
 }
 
 async function handleSellWalletSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/sell");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/sell", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const wallet = message.trim().toUpperCase();
   const validate = DepositSchema.safeParse({ wallet });
   if (!validate.success) {
@@ -495,6 +555,24 @@ async function handleSellWalletSelect(user, message) {
 }
 
 async function handleSellAccountSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/sell");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/sell", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
 
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -590,6 +668,24 @@ async function handleSellAccountSelect(user, message) {
 }
 
 async function handleSellOptions(user, message) {
+  const hasExpired = getCommandExpiry(user, "/sell");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/sell", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const validator = BuySchema.safeParse(message);
 
   if (!validator.success) {
@@ -693,9 +789,28 @@ async function handleDeposit(user, message) {
     user,
     "Kindly select the token you would like to deposit into",
   );
+  await refreshCommandExpiry(user, "/deposit", 20);
 }
 
 async function handleDepositWalletSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/deposit");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/deposit", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const wallet = message.trim();
   const validator = WalletSchema.safeParse({ wallet });
 
@@ -750,6 +865,24 @@ async function handleDepositWalletSelect(user, message) {
 }
 
 async function handleDepositNetworkSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/deposit");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/deposit", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const network = message.trim();
   const metadata = user.metadata;
 
