@@ -298,6 +298,8 @@ async function handleBuySelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/buy", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -349,6 +351,8 @@ async function handleBuyOptions(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/buy", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -458,6 +462,8 @@ async function handleSellWalletSelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/sell", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -541,6 +547,8 @@ async function handleSellAccountSelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/sell", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -654,6 +662,8 @@ async function handleSellOptions(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/sell", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -779,6 +789,8 @@ async function handleDepositWalletSelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/deposit", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -851,6 +863,8 @@ async function handleDepositNetworkSelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/deposit", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",

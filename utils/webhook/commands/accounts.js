@@ -91,6 +91,8 @@ async function handleBankOptions(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/accounts:add", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -156,6 +158,8 @@ async function handleBankSelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/accounts:add", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -231,6 +235,8 @@ async function handleAccountAddNumber(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/accounts:add", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -297,6 +303,8 @@ async function handleAccountAddConfirm(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/accounts:add", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -418,6 +426,8 @@ async function handleAccountDeleteSelect(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/accounts:delete", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
@@ -509,6 +519,8 @@ async function handleAccountDeleteConfirm(user, message) {
 
   if (hasExpired) {
     await refreshCommandExpiry(user, "/accounts:delete", 20);
+    user.state = "/menu";
+    await user.save();
     await sendInteractiveButtons({
       user,
       text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
