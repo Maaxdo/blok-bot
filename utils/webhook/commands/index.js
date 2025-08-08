@@ -55,6 +55,7 @@ const {
   handleTransactionsPrev,
 } = require("./transactions");
 const { handleRates } = require("./rates");
+const { handleSupport } = require("./support");
 
 const commands = [
   {
@@ -252,6 +253,10 @@ const commands = [
   {
     command: "/transactions:prev",
     function: auth(handleTransactionsPrev, false, false),
+  },
+  {
+    command: "/support",
+    function: handleSupport,
   },
 ];
 
