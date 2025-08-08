@@ -8,6 +8,7 @@ const {
   sendInteractiveButtons,
 } = require("../../../helpers/bot/infobip");
 const { BankSearchSchema } = require("../../schema/accounts");
+const { refreshCommandExpiry } = require("../../common/expiry");
 
 async function getBanks() {
   return BlokAxios({
@@ -82,9 +83,28 @@ async function handleAccountAdd(user, message) {
 
   user.state = "/accounts:banks";
   await user.save();
+  await refreshCommandExpiry(user, "/accounts:add", 20);
 }
 
 async function handleBankOptions(user, message) {
+  const hasExpired = getCommandExpiry(user, "/accounts:add");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/accounts:add", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
   const validator = BankSearchSchema.safeParse({
     bank: message.trim(),
@@ -132,6 +152,24 @@ async function handleBankOptions(user, message) {
 }
 
 async function handleBankSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/accounts:add");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/accounts:add", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
   const banks = metadata.banks;
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -189,6 +227,24 @@ async function handleBankSelect(user, message) {
 }
 
 async function handleAccountAddNumber(user, message) {
+  const hasExpired = getCommandExpiry(user, "/accounts:add");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/accounts:add", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
   const accountNumber = message.trim();
 
@@ -237,6 +293,24 @@ async function handleAccountAddNumber(user, message) {
 }
 
 async function handleAccountAddConfirm(user, message) {
+  const hasExpired = getCommandExpiry(user, "/accounts:add");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/accounts:add", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
 
   try {
@@ -336,9 +410,28 @@ async function handleAccountDelete(user, message) {
       },
     ],
   });
+  await refreshCommandExpiry(user, "/accounts:delete", 20);
 }
 
 async function handleAccountDeleteSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/accounts:delete");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/accounts:delete", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
 
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -412,6 +505,24 @@ async function handleAccountDeleteSelect(user, message) {
 }
 
 async function handleAccountDeleteConfirm(user, message) {
+  const hasExpired = getCommandExpiry(user, "/accounts:delete");
+
+  if (hasExpired) {
+    await refreshCommandExpiry(user, "/accounts:delete", 20);
+    await sendInteractiveButtons({
+      user,
+      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    return;
+  }
+
   const metadata = user.metadata;
   const { selectedAccount } = metadata;
   try {
