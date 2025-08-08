@@ -45,7 +45,10 @@ async function handlePostWebhook(req, res) {
     const message = extractMessage(req.body);
 
     const command = commands.find(
-      (cmd) => cmd.command === message || cmd.command === `/${message}`,
+      (cmd) =>
+        cmd.command === message ||
+        cmd.command === `/${message}` ||
+        cmd.command.includes(message.trim().toLowerCase()),
     );
     if (command) {
       await command.function(user, message);
