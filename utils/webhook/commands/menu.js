@@ -13,6 +13,22 @@ const options = [
   {
     title: "Buy Crypto",
     id: "/buy",
+    nplMessage: 'or "I want to buy crypto"',
+  },
+  {
+    title: "Sell Crypto",
+    id: "/sell",
+    nplMessage: 'or "I want to sell crypto"',
+  },
+  {
+    title: "Deposit",
+    id: "/deposit",
+    nplMessage: 'or "I want to deposit crypto"',
+  },
+  {
+    title: "Withdraw",
+    id: "/withdraw",
+    nplMessage: 'or "I want to withdraw crypto"',
   },
   {
     title: "View your saved accounts",
@@ -22,18 +38,7 @@ const options = [
     title: "View your transactions",
     id: "/transactions",
   },
-  {
-    title: "Sell Crypto",
-    id: "/sell",
-  },
-  {
-    title: "Deposit",
-    id: "/deposit",
-  },
-  {
-    title: "Withdraw",
-    id: "/withdraw",
-  },
+
   {
     title: "View your profile",
     id: "/profile",
@@ -49,7 +54,10 @@ const options = [
 ];
 
 const optionsString = options
-  .map((option) => `✅ ${option.title} - Type *${option.id}*\n`)
+  .map(
+    (option) =>
+      `✅ ${option.title} - Type *${option.id}* ${option?.nplMessage ?? ""}\n`,
+  )
   .join("\n");
 
 async function handleMenu(user) {

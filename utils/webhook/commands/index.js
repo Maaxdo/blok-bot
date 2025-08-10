@@ -260,6 +260,9 @@ const commands = [
   },
 ];
 
+const walletCommands = ["/buy", "/sell", "/deposit", "/withdraw"];
+
 module.exports = {
   commands,
+  walletCommands,
 };

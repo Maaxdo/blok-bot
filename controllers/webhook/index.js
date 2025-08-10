@@ -46,8 +46,9 @@ async function handlePostWebhook(req, res) {
       (cmd) =>
         cmd.command === message ||
         cmd.command === `/${message}` ||
-        message.trim().toLowerCase().includes(cmd.command),
+        new RegExp(`^I want to ${cmd.command.slice(1)}`, "i").test(message),
     );
+
     if (command) {
       await command.function(user, message);
       return res.status(200).send("EVENT_RECEIVED: Command");
