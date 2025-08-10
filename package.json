@@ -7,10 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "tunnel": "ngrok http 5000 --domain pet-hookworm-really.ngrok-free.app",
-    "db:migrate": "sequelize db:migrate",
-    "db:model:generate": "sequelize model:generate",
-    "db:migrate:undo": "sequelize db:migrate:undo"
+    "tunnel": "ngrok http 5000 --domain pet-hookworm-really.ngrok-free.app"
   },
   "packageManager": "pnpm@10.14.0",
   "keywords": [],

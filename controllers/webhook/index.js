@@ -1,7 +1,5 @@
-// const { User } = require("../../db/models");`
 const { commands } = require("../../utils/webhook/commands");
 const { extractMessage } = require("../../utils/webhook/extractMessage");
-const { handleMenu } = require("../../utils/webhook/commands/menu");
 const { User } = require("../../db/models");
 const { handleSupport } = require("../../utils/webhook/commands/support");
 
