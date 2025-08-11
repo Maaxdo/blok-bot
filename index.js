@@ -2,13 +2,11 @@ const dotenv = require("dotenv");
 const { appRouter } = require("./routes");
 const { connectToDB } = require("./db/init");
 const cron = require("node-cron");
-const { InfoBipAxios } = require("./helpers/webhook/infobip");
-const { infobip } = require("./config/app");
 const { User } = require("./db/models");
 const { sendInteractiveButtons } = require("./helpers/bot/infobip");
 const {
   getCommandExpiry,
-  refreshCommandExpiry,
+  removeCommandExpiry,
 } = require("./utils/common/expiry");
 
 dotenv.config();
@@ -23,7 +21,7 @@ cron.schedule("* * * * *", async () => {
 
   usersWithExpiry.forEach(async (user) => {
     if (getCommandExpiry(user, user.expiryCommand)) {
-      await refreshCommandExpiry(user, user.expiryCommand, 20);
+      await removeCommandExpiry(user);
       await sendInteractiveButtons({
         user,
         text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",

@@ -20,7 +20,14 @@ async function refreshCommandExpiry(user, commandCategory, durationInMins) {
   await user.save();
 }
 
+async function removeCommandExpiry(user) {
+  user.expiryCommand = null;
+  user.expiryCommandDatetime = null;
+  await user.save();
+}
+
 module.exports = {
   getCommandExpiry,
   refreshCommandExpiry,
+  removeCommandExpiry,
 };
