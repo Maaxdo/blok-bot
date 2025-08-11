@@ -10,17 +10,17 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 
 cron.schedule("* * * * *", async () => {
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: "2349122981131",
-      content: {
-        text: "Cron Text",
-      },
-    },
-  });
+  // await InfoBipAxios({
+  //   url: "/whatsapp/1/message/text",
+  //   method: "POST",
+  //   data: {
+  //     from: infobip.phone,
+  //     to: "2349122981131",
+  //     content: {
+  //       text: "Cron Text",
+  //     },
+  //   },
+  // });
 });
 
 appRouter.listen(PORT, () => {
