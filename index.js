@@ -26,7 +26,6 @@ cron.schedule("* * * * *", async () => {
   usersWithExpiry.forEach(async (user) => {
     if (getCommandExpiry(user, user.expiryCommand)) {
       await refreshCommandExpiry(user, user.expiryCommand, 20);
-
       await sendInteractiveButtons({
         user,
         text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
