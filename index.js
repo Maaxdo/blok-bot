@@ -12,6 +12,11 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
+appRouter.listen(PORT, () => {
+  connectToDB();
+  console.log(`Server running on port ${PORT}`);
+});
+
 cron.schedule("* * * * *", async () => {
   const usersWithExpiry = await User.find({
     expiryCommandDatetime: { $exists: true, $ne: null },
@@ -33,9 +38,4 @@ cron.schedule("* * * * *", async () => {
       });
     }
   });
-});
-
-appRouter.listen(PORT, () => {
-  connectToDB();
-  console.log(`Server running on port ${PORT}`);
 });
