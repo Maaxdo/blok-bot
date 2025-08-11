@@ -23,6 +23,7 @@
     "express": "^4.21.1",
     "mongoose": "^8.17.0",
     "mysql2": "^3.11.3",
+    "node-cron": "^4.2.1",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.5",
