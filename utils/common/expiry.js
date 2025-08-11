@@ -1,26 +1,21 @@
 function getCommandExpiry(user, commandCategory) {
-  const expiry = user.metadata?.expiry;
+  const expiry = user.expiryCommandDatetime;
 
-  if (!expiry || expiry.commandCategory !== commandCategory) {
+  if (!expiry || user.expiryCommand !== commandCategory) {
     return false;
   }
 
   const currentTime = Date.now();
 
-  return currentTime > expiry.datetime;
+  return currentTime > expiry;
 }
 
 async function refreshCommandExpiry(user, commandCategory, durationInMins) {
   const currentTime = Date.now();
   const expiryDate = new Date(currentTime + durationInMins * 60 * 1000);
 
-  user.metadata = {
-    ...user.metadata,
-    expiry: {
-      commandCategory,
-      datetime: expiryDate,
-    },
-  };
+  user.expiryCommand = commandCategory;
+  user.expiryCommandDatetime = expiryDate;
 
   await user.save();
 }

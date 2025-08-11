@@ -15,6 +15,14 @@ const UserSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
+    expiryCommand: {
+      type: String,
+      default: null,
+    },
+    expiryCommandDatetime: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
