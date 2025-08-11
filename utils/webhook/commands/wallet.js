@@ -290,7 +290,7 @@ async function handleBuy(user, message) {
   await sendWalletOptions(user);
   user.state = "/buy:select";
   await user.save();
-  await refreshCommandExpiry(user, "/buy", 1);
+  await refreshCommandExpiry(user, "/buy", 20);
 }
 
 async function handleBuySelect(user, message) {
