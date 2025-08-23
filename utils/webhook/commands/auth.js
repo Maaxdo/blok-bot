@@ -1,13 +1,18 @@
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { LoginSchema, RegisterSchema } = require("../../schema/auth");
 const { handleMenu } = require("./menu");
-const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
-const { infobip } = require("../../../config/app");
 const { errorParser, zodErrorParser } = require("../../common/errorParser");
 const {
   sendInteractiveButtons,
   sendText,
+  sendFlow,
 } = require("../../../helpers/bot/infobip");
+const {
+  refreshCommandExpiry,
+  getCommandExpiry,
+  commandExpiryAction,
+  removeCommandExpiry,
+} = require("../../common/expiry");
 
 async function sendAuthPrompt(user) {
   const metadata = user.metadata?.userId ? user.metadata : null;
@@ -40,20 +45,6 @@ async function sendAuthPrompt(user) {
 }
 
 async function handleRegisterPrompt(user) {
-  // if (user.metadata) {
-  //   await InfoBipAxios({
-  //     url: "/whatsapp/1/message/text",
-  //     method: "POST",
-  //     data: {
-  //       from: infobip.phone,
-  //       to: user.phone,
-  //       content: {
-  //         text: "You are already logged in.",
-  //       },
-  //     },
-  //   });
-  //   return;
-  // }
   const currentState = user.state;
 
   try {
@@ -77,42 +68,26 @@ async function handleRegisterPrompt(user) {
     });
     user.state = currentState;
     await user.save();
-
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "*Sign up*🚀\n Unlock new transaction perks with Blok AI!",
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "24693814993544868",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "SIGNUP_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: "*Sign up*🚀\n Unlock new transaction perks with Blok AI!",
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "24693814993544868",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SIGNUP_SCREEN",
         },
       },
     });
+    await refreshCommandExpiry(user, "/register", 20);
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: errorParser(e),
-        },
-      },
+    await sendText({
+      user,
+      text: errorParser(e),
     });
     return;
   }
@@ -122,32 +97,29 @@ async function handleRegisterPrompt(user) {
 }
 
 async function handleRegisterSendOtp(user, message) {
+  const hasExpired = getCommandExpiry(user, "/register");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/register", 20);
+    return;
+  }
   user.state = "/register:verify-otp";
   const validator = RegisterSchema.safeParse(message);
 
   if (!validator.success) {
     const error = zodErrorParser(validator);
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `*Errors* ⚠️\n${error}\n\nPlease try again`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "24693814993544868",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "SIGNUP_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: `*Errors* ⚠️\n${error}\n\nPlease try again`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "24693814993544868",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SIGNUP_SCREEN",
         },
       },
     });
@@ -166,34 +138,26 @@ async function handleRegisterSendOtp(user, message) {
         phone: user.phone,
       },
     });
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: "An OTP has been sent to your email. Please enter it below.",
-        },
-      },
+    await sendText({
+      user,
+      text: "An OTP has been sent to your email. Please enter it below.",
     });
     await user.save();
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: errorParser(e),
-        },
-      },
+    await sendText({
+      user,
+      text: errorParser(e),
     });
   }
 }
 
 async function handleRegisterVerifyOtp(user, message) {
+  const hasExpired = getCommandExpiry(user, "/register");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/register", 20);
+    return;
+  }
   const otp = message.trim();
   const metadata = user.metadata;
 
@@ -235,41 +199,24 @@ async function handleRegisterVerifyOtp(user, message) {
       userId: res.user_id,
     };
 
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Hurray!🎉\nRegistration successful!. Set up your wallet",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/wallet:initiate",
-                title: "Create wallet",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Hurray!🎉\nRegistration successful!. Set up your wallet",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/wallet:initiate",
+          title: "Create wallet",
         },
-      },
+      ],
     });
+
     user.state = "/kyc";
     await user.save();
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `*An error occured* ⚠️\n${errorParser(e)}\nPlease try again.`,
-        },
-      },
+    await sendText({
+      user,
+      text: `*An error occured* ⚠️\n${errorParser(e)}\nPlease try again.`,
     });
   }
 }
@@ -278,21 +225,19 @@ async function handleCancel(user, message) {
   user.metadata = null;
   user.state = "/start";
   await user.save();
-
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: "Registration cancelled",
-      },
-    },
+  await sendText({
+    user,
+    text: "Registration cancelled",
   });
 }
 
 async function handleRegistrationConfirm(user, message) {
+  const hasExpired = getCommandExpiry(user, "/register");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/register", 20);
+    return;
+  }
   const metadata = user.metadata;
 
   await BlokAxios({
@@ -330,6 +275,7 @@ async function handleRegistrationConfirm(user, message) {
     user,
     text: "Registration successful!\nType in a 4 digit pin to generate your wallet.",
   });
+  await removeCommandExpiry(user);
 }
 
 async function handleViewProfile(user, message) {
@@ -343,32 +289,48 @@ async function handleViewProfile(user, message) {
 
   const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status}`;
 
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: body,
-      },
-    },
+  await sendText({
+    user,
+    text: body,
   });
 }
 
 async function handleLogin(user, message) {
   user.state = "/login:confirm";
   await user.save();
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/flow",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: "Sign In\nWelcome to Blok AI. Your fast and secure way to transact crypto.\nLet's get started.",
-        },
+  await sendFlow({
+    user,
+    text: "Sign In\nWelcome to Blok AI. Your fast and secure way to transact crypto.\nLet's get started.",
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "1848452559046569",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "SIGNIN_SCREEN",
+      },
+    },
+  });
+  await refreshCommandExpiry(user, "/login", 20);
+}
+
+async function handleLoginConfirm(user, message) {
+  const hasExpired = getCommandExpiry(user, "/login");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/login", 20);
+    return;
+  }
+
+  try {
+    const validator = LoginSchema.safeParse(message);
+    if (!validator.success) {
+      const error = zodErrorParser(validator);
+      await sendFlow({
+        user,
+        text: `*Errors* ⚠️\n${error}\n\nPlease try again`,
         action: {
           mode: "PUBLISHED",
           flowMessageVersion: 3,
@@ -378,39 +340,6 @@ async function handleLogin(user, message) {
           flowAction: "NAVIGATE",
           flowActionPayload: {
             screen: "SIGNIN_SCREEN",
-          },
-        },
-      },
-    },
-  });
-}
-
-async function handleLoginConfirm(user, message) {
-  try {
-    const validator = LoginSchema.safeParse(message);
-    if (!validator.success) {
-      const error = zodErrorParser(validator);
-      await InfoBipAxios({
-        url: "/whatsapp/1/message/interactive/flow",
-        method: "POST",
-        data: {
-          from: infobip.phone,
-          to: user.phone,
-          content: {
-            body: {
-              text: `*Errors* ⚠️\n${error}\n\nPlease try again`,
-            },
-            action: {
-              mode: "PUBLISHED",
-              flowMessageVersion: 3,
-              flowToken: "Flow token",
-              flowId: "1848452559046569",
-              callToActionButton: "Continue",
-              flowAction: "NAVIGATE",
-              flowActionPayload: {
-                screen: "SIGNIN_SCREEN",
-              },
-            },
           },
         },
       });
@@ -431,50 +360,31 @@ async function handleLoginConfirm(user, message) {
       userId: res.user_id,
     };
     await user.save();
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Login successful!. View the available options",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/menu",
-                title: "View Menu",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Login successful!. View the available options",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "View Menu",
         },
-      },
+      ],
     });
+    await removeCommandExpiry(user);
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `${errorParser(e)}\nPlease try again`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "1848452559046569",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "SIGNIN_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: `${errorParser(e)}\nPlease try again`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "1848452559046569",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SIGNIN_SCREEN",
         },
       },
     });
@@ -498,16 +408,26 @@ async function handleLogout(user) {
       },
     ],
   });
+  await refreshCommandExpiry(user, "/logout", 20);
 }
 
 async function handleLogoutConfirm(user, message) {
+  const hasExpired = getCommandExpiry(user, "/logout");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/logout", 20);
+    return;
+  }
   user.metadata = null;
   user.state = "/start";
   await user.save();
   await sendAuthPrompt(user);
+  await removeCommandExpiry(user);
 }
 
 async function handleLogoutCancel(user, message) {
+  user.state = "/menu";
+  await user.save();
   await sendText({ user, text: "Logout cancelled" });
 }
 

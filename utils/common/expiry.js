@@ -1,3 +1,5 @@
+const { sendInteractiveButtons } = require("../../helpers/bot/infobip");
+
 function getCommandExpiry(user, commandCategory) {
   const expiry = user.expiryCommandDatetime;
 
@@ -27,8 +29,26 @@ async function removeCommandExpiry(user) {
   await user.save();
 }
 
+async function commandExpiryAction(user, commandCategory, durationInMins) {
+  await refreshCommandExpiry(user, commandCategory, durationInMins);
+  user.state = "/menu";
+  await user.save();
+  await sendInteractiveButtons({
+    user,
+    text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
+    ],
+  });
+}
+
 module.exports = {
   getCommandExpiry,
   refreshCommandExpiry,
   removeCommandExpiry,
+  commandExpiryAction,
 };

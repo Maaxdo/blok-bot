@@ -8,7 +8,11 @@ const {
   sendInteractiveButtons,
 } = require("../../../helpers/bot/infobip");
 const { BankSearchSchema } = require("../../schema/accounts");
-const { refreshCommandExpiry } = require("../../common/expiry");
+const {
+  refreshCommandExpiry,
+  commandExpiryAction,
+  getCommandExpiry,
+} = require("../../common/expiry");
 
 async function getBanks() {
   return BlokAxios({
@@ -90,20 +94,7 @@ async function handleBankOptions(user, message) {
   const hasExpired = getCommandExpiry(user, "/accounts:add");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/accounts:add", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/accounts:add", 20);
     return;
   }
 
@@ -157,23 +148,9 @@ async function handleBankSelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/accounts:add");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/accounts:add", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/accounts:add", 20);
     return;
   }
-
   const metadata = user.metadata;
   const banks = metadata.banks;
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -234,20 +211,7 @@ async function handleAccountAddNumber(user, message) {
   const hasExpired = getCommandExpiry(user, "/accounts:add");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/accounts:add", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/accounts:add", 20);
     return;
   }
 
@@ -302,20 +266,7 @@ async function handleAccountAddConfirm(user, message) {
   const hasExpired = getCommandExpiry(user, "/accounts:add");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/accounts:add", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/accounts:add", 20);
     return;
   }
 
@@ -425,20 +376,7 @@ async function handleAccountDeleteSelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/accounts:delete");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/accounts:delete", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/accounts:delete", 20);
     return;
   }
 
@@ -518,23 +456,9 @@ async function handleAccountDeleteConfirm(user, message) {
   const hasExpired = getCommandExpiry(user, "/accounts:delete");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/accounts:delete", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/accounts:delete", 20);
     return;
   }
-
   const metadata = user.metadata;
   const { selectedAccount } = metadata;
   try {

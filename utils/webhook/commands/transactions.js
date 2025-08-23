@@ -1,13 +1,18 @@
 const {
   sendFlow,
   sendInteractiveButtons,
-  sendText,
 } = require("../../../helpers/bot/infobip");
 const { DateSchema } = require("../../schema/transactions");
 const { zodErrorParser, errorParser } = require("../../common/errorParser");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { paginateExternally } = require("../../common/paginate");
 const { getPaginationButtons } = require("../../common/pagination");
+const {
+  refreshCommandExpiry,
+  getCommandExpiry,
+  commandExpiryAction,
+  removeCommandExpiry,
+} = require("../../common/expiry");
 
 const datesFlow = {
   mode: "PUBLISHED",
@@ -29,6 +34,7 @@ async function handleTransactions(user, message) {
   });
   user.state = "/transactions:dates";
   await user.save();
+  await refreshCommandExpiry(user, "/transactions", 20);
 }
 
 function getTransactionsText(transactions) {
@@ -44,6 +50,13 @@ function getTransactionsText(transactions) {
 }
 
 async function handleTransactionsDate(user, message) {
+  const hasExpired = getCommandExpiry(user, "/transactions");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/transactions", 20);
+    return;
+  }
+
   const validation = DateSchema.safeParse(message);
   const metadata = user.metadata;
 
@@ -97,6 +110,13 @@ async function handleTransactionsDate(user, message) {
 }
 
 async function handleTransactionsNext(user, message) {
+  const hasExpired = getCommandExpiry(user, "/transactions");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/transactions", 20);
+    return;
+  }
+
   const metadata = user.metadata;
   const page = metadata.page + 1;
 
@@ -124,6 +144,7 @@ async function handleTransactionsNext(user, message) {
       text: getTransactionsText(res.transactions),
       buttons,
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     user.state = "/transactions";
     await user.save();
@@ -142,6 +163,12 @@ async function handleTransactionsNext(user, message) {
 }
 
 async function handleTransactionsPrev(user, message) {
+  const hasExpired = getCommandExpiry(user, "/transactions");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/transactions", 20);
+    return;
+  }
   const metadata = user.metadata;
   const page = metadata.page - 1;
 
@@ -169,6 +196,7 @@ async function handleTransactionsPrev(user, message) {
       text: getTransactionsText(res.transactions),
       buttons,
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     user.state = "/transactions";
     await user.save();

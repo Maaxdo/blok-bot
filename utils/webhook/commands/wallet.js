@@ -20,6 +20,8 @@ const { cache } = require("../../common/cache");
 const {
   refreshCommandExpiry,
   getCommandExpiry,
+  commandExpiryAction,
+  removeCommandExpiry,
 } = require("../../common/expiry");
 
 const getChunkedWalletTypes = () => {
@@ -297,20 +299,7 @@ async function handleBuySelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/buy");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/buy", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/buy", 20);
     return;
   }
 
@@ -350,20 +339,7 @@ async function handleBuyOptions(user, message) {
   const hasExpired = getCommandExpiry(user, "/buy");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/buy", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/buy", 20);
     return;
   }
 
@@ -421,6 +397,7 @@ async function handleBuyOptions(user, message) {
       user,
       text: `${res.deposit_details.account_number}`,
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     await InfoBipAxios({
       url: "/whatsapp/1/message/text",
@@ -461,20 +438,7 @@ async function handleSellWalletSelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/sell");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/sell", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/sell", 20);
     return;
   }
 
@@ -546,20 +510,7 @@ async function handleSellAccountSelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/sell");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/sell", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/sell", 20);
     return;
   }
 
@@ -661,20 +612,7 @@ async function handleSellOptions(user, message) {
   const hasExpired = getCommandExpiry(user, "/sell");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/sell", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/sell", 20);
     return;
   }
 
@@ -746,6 +684,7 @@ async function handleSellOptions(user, message) {
         },
       },
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     await InfoBipAxios({
       url: "/whatsapp/1/message/interactive/flow",
@@ -788,20 +727,7 @@ async function handleDepositWalletSelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/deposit");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/deposit", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/deposit", 20);
     return;
   }
 
@@ -862,20 +788,7 @@ async function handleDepositNetworkSelect(user, message) {
   const hasExpired = getCommandExpiry(user, "/deposit");
 
   if (hasExpired) {
-    await refreshCommandExpiry(user, "/deposit", 20);
-    user.state = "/menu";
-    await user.save();
-    await sendInteractiveButtons({
-      user,
-      text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "Back to menu",
-        },
-      ],
-    });
+    await commandExpiryAction(user, "/deposit", 20);
     return;
   }
 
@@ -905,6 +818,7 @@ async function handleDepositNetworkSelect(user, message) {
     user,
     text: address,
   });
+  await removeCommandExpiry(user);
 }
 
 module.exports = {

@@ -3,6 +3,7 @@ const {
   failedResponse,
 } = require("../../helpers/common/httpResponse");
 const { connectToDB } = require("../../db/init");
+
 const healthCheckerController = async (req, res) => {
   try {
     await connectToDB();
