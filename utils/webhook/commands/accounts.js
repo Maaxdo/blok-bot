@@ -12,6 +12,7 @@ const {
   refreshCommandExpiry,
   commandExpiryAction,
   getCommandExpiry,
+  removeCommandExpiry,
 } = require("../../common/expiry");
 
 async function getBanks() {
@@ -300,6 +301,7 @@ async function handleAccountAddConfirm(user, message) {
         },
       ],
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     user.state = "/accounts";
     await user.save();
@@ -342,6 +344,7 @@ async function handleAccountAddCancel(user, message) {
       },
     ],
   });
+  await removeCommandExpiry(user);
 }
 
 async function handleAccountDelete(user, message) {
@@ -488,6 +491,7 @@ async function handleAccountDeleteConfirm(user, message) {
         },
       ],
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     await sendInteractiveButtons({
       user,
@@ -523,6 +527,7 @@ async function handleAccountDeleteCancel(user, message) {
       },
     ],
   });
+  await removeCommandExpiry(user);
 }
 
 module.exports = {
