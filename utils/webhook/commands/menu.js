@@ -21,16 +21,6 @@ const options = [
     nplMessage: 'or "I want to sell crypto"',
   },
   {
-    title: "Deposit",
-    id: "/deposit",
-    nplMessage: 'or "I want to deposit crypto"',
-  },
-  {
-    title: "Withdraw",
-    id: "/withdraw",
-    nplMessage: 'or "I want to withdraw crypto"',
-  },
-  {
     title: "View your saved accounts",
     id: "/accounts",
   },

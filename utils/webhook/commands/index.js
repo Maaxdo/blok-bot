@@ -130,30 +130,30 @@ const commands = [
     command: "/wallet:generate",
     function: auth(handleGenerateWallet),
   },
-  {
-    command: "/deposit",
-    function: auth(handleDeposit, false, false),
-  },
-  {
-    command: "/deposit:wallet",
-    function: auth(handleDepositWalletSelect, false, false),
-  },
-  {
-    command: "/deposit:network",
-    function: auth(handleDepositNetworkSelect, false, false),
-  },
-  {
-    command: "/withdraw",
-    function: auth(handleWithdraw, false, false),
-  },
-  {
-    command: "/withdraw:select",
-    function: auth(handleWithdrawSelect, false, false),
-  },
-  {
-    command: "/withdraw:options",
-    function: auth(handleWithdrawOptions, false, false),
-  },
+  // {
+  //   command: "/deposit",
+  //   function: auth(handleDeposit, false, false),
+  // },
+  // {
+  //   command: "/deposit:wallet",
+  //   function: auth(handleDepositWalletSelect, false, false),
+  // },
+  // {
+  //   command: "/deposit:network",
+  //   function: auth(handleDepositNetworkSelect, false, false),
+  // },
+  // {
+  //   command: "/withdraw",
+  //   function: auth(handleWithdraw, false, false),
+  // },
+  // {
+  //   command: "/withdraw:select",
+  //   function: auth(handleWithdrawSelect, false, false),
+  // },
+  // {
+  //   command: "/withdraw:options",
+  //   function: auth(handleWithdrawOptions, false, false),
+  // },
   {
     command: "/my-assets",
     function: auth(handleAssets, false, false),
@@ -260,7 +260,7 @@ const commands = [
   },
 ];
 
-const walletCommands = ["/buy", "/sell", "/deposit", "/withdraw"];
+const walletCommands = ["/buy", "/sell"];
 
 module.exports = {
   commands,
