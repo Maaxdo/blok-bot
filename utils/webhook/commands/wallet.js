@@ -410,6 +410,43 @@ async function handleSellWalletSelect(user, message) {
     ...metadata,
     wallet,
   };
+  user.state = "/sell:networks:select";
+  await user.save();
+
+  const cryptos = await cache("cryptos", async () => {
+    const response = await BlokAxios({
+      url: "/crypto/available",
+    });
+    return response.data;
+  });
+
+  const networks =
+    cryptos.find((item) => item.symbol === wallet)?.networks || [];
+
+  await sendInteractiveButtons({
+    user,
+    text: `Select the network you would like to use for ${wallet}`,
+    buttons: networks.map((network) => ({
+      type: "REPLY",
+      id: network,
+      title: network,
+    })),
+  });
+}
+
+async function handleSellNetworksSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/sell");
+  if (hasExpired) {
+    await commandExpiryAction(user, "/sell", 20);
+    return;
+  }
+  const metadata = user.metadata;
+  const network = message.trim();
+
+  user.metadata = {
+    ...metadata,
+    network,
+  };
   user.state = "/sell:account:select";
   await user.save();
 
@@ -516,7 +553,6 @@ async function handleSellAccountSelect(user, message) {
 }
 
 async function handleSellOptions(user, message) {
-  logger.warn("Sell", message);
   const hasExpired = getCommandExpiry(user, "/sell");
 
   if (hasExpired) {
@@ -556,7 +592,9 @@ async function handleSellOptions(user, message) {
         wallet_type: metadata.wallet,
         bank_account_id: metadata.selectedAccount.id,
         currency: metadata.wallet,
-        ...message,
+        network: metadata.network,
+        amount: message.amount,
+        pin: message.pin,
       },
     }).then((res) => res.data);
     user.state = "/menu";
@@ -719,4 +757,5 @@ module.exports = {
   handleSellWalletSelect,
   handleSellAccountSelect,
   handleSellOptions,
+  handleSellNetworksSelect,
 };

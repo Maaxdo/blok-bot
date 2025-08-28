@@ -42,9 +42,10 @@ async function handlePostWebhook(req, res) {
   try {
     const user = req.user;
     const message = extractMessage(req.body);
-    const regexTest = new RegExp(`^I want to ${message.slice(1)}`, "i").test(
-      message,
-    );
+    const regexTest =
+      typeof message === "string"
+        ? new RegExp(`^I want to ${message.slice(1)}`, "i").test(message)
+        : false;
     const command = commands.find(
       (cmd) =>
         cmd.command === message || cmd.command === `/${message}` || regexTest,
