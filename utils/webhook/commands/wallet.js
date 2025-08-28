@@ -516,6 +516,7 @@ async function handleSellAccountSelect(user, message) {
 }
 
 async function handleSellOptions(user, message) {
+  logger.warn("Sell", message);
   const hasExpired = getCommandExpiry(user, "/sell");
 
   if (hasExpired) {
