@@ -10,3 +10,7 @@ node_modules
 .idea
 .idea/*
 .idea/**/*
+
+# Log files
+logs/*
+logs/**/*

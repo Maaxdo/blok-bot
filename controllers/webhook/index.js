@@ -2,6 +2,7 @@ const { commands } = require("../../utils/webhook/commands");
 const { extractMessage } = require("../../utils/webhook/extractMessage");
 const { User } = require("../../db/models");
 const { handleSupport } = require("../../utils/webhook/commands/support");
+const { logger } = require("../../utils/common/logger");
 
 function handleGetWebhook(req, res) {
   const challenge = req.query["hub.challenge"];

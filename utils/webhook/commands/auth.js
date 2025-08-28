@@ -13,6 +13,7 @@ const {
   commandExpiryAction,
   removeCommandExpiry,
 } = require("../../common/expiry");
+const { logger } = require("../../common/logger");
 
 async function sendAuthPrompt(user) {
   const metadata = user.metadata?.userId ? user.metadata : null;
@@ -34,7 +35,6 @@ async function sendAuthPrompt(user) {
         },
       ],
     });
-
     return;
   }
 
@@ -85,6 +85,7 @@ async function handleRegisterPrompt(user) {
     });
     await refreshCommandExpiry(user, "/register", 20);
   } catch (e) {
+    logger.error(errorParser(e), e);
     await sendText({
       user,
       text: errorParser(e),
@@ -148,6 +149,7 @@ async function handleRegisterSendOtp(user, message) {
       user,
       text: errorParser(e),
     });
+    logger.error(errorParser(e), e);
   }
 }
 
@@ -218,6 +220,7 @@ async function handleRegisterVerifyOtp(user, message) {
       user,
       text: `*An error occured* ⚠️\n${errorParser(e)}\nPlease try again.`,
     });
+    logger.error(errorParser(e), e);
   }
 }
 
@@ -232,50 +235,58 @@ async function handleCancel(user, message) {
 }
 
 async function handleRegistrationConfirm(user, message) {
-  const hasExpired = getCommandExpiry(user, "/register");
+  try {
+    const hasExpired = getCommandExpiry(user, "/register");
 
-  if (hasExpired) {
-    await commandExpiryAction(user, "/register", 20);
-    return;
+    if (hasExpired) {
+      await commandExpiryAction(user, "/register", 20);
+      return;
+    }
+    const metadata = user.metadata;
+
+    await BlokAxios({
+      url: "/signup/details",
+      method: "POST",
+      data: {
+        phone: user.phone,
+        first_name: metadata.firstName,
+        last_name: metadata.lastName,
+        email: metadata.email,
+        password: metadata.password,
+        dob: metadata.dob,
+        gender: "string",
+        is_mobile_app: false,
+      },
+    });
+
+    const res = await BlokAxios({
+      url: "/login",
+      method: "POST",
+      data: {
+        email: metadata.email,
+        password: metadata.password,
+      },
+    }).then((res) => res.data);
+
+    user.state = "/wallet:generate";
+    user.metadata = {
+      token: res.access_token,
+      userId: res.user_id,
+    };
+
+    await user.save();
+    await sendText({
+      user,
+      text: "Registration successful!\nType in a 4 digit pin to generate your wallet.",
+    });
+    await removeCommandExpiry(user);
+  } catch (e) {
+    logger.error(errorParser(e), e);
+    await sendText({
+      user,
+      text: "An error occurred. Please try again",
+    });
   }
-  const metadata = user.metadata;
-
-  await BlokAxios({
-    url: "/signup/details",
-    method: "POST",
-    data: {
-      phone: user.phone,
-      first_name: metadata.firstName,
-      last_name: metadata.lastName,
-      email: metadata.email,
-      password: metadata.password,
-      dob: metadata.dob,
-      gender: "string",
-      is_mobile_app: false,
-    },
-  });
-
-  const res = await BlokAxios({
-    url: "/login",
-    method: "POST",
-    data: {
-      email: metadata.email,
-      password: metadata.password,
-    },
-  }).then((res) => res.data);
-
-  user.state = "/wallet:generate";
-  user.metadata = {
-    token: res.access_token,
-    userId: res.user_id,
-  };
-
-  await user.save();
-  await sendText({
-    user,
-    text: "Registration successful!\nType in a 4 digit pin to generate your wallet.",
-  });
-  await removeCommandExpiry(user);
 }
 
 async function handleViewProfile(user, message) {
