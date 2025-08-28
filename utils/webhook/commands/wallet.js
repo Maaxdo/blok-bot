@@ -21,6 +21,7 @@ const {
   commandExpiryAction,
   removeCommandExpiry,
 } = require("../../common/expiry");
+const { logger } = require("../../common/logger");
 
 const getChunkedWalletTypes = () => {
   const chunkedWalletTypes = chunkify(WALLET_TYPES, 3);
@@ -587,6 +588,7 @@ async function handleSellOptions(user, message) {
         },
       },
     });
+    logger.error("Sell error", e);
   }
 }
 
