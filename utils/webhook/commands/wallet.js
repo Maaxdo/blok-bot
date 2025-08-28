@@ -7,8 +7,6 @@ const {
 } = require("../../schema/wallet");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../../constants/wallets");
-const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
-const { infobip } = require("../../../config/app");
 const { zodErrorParser, errorParser } = require("../../common/errorParser");
 const { chunkify } = require("../../common/chunkify");
 const {
@@ -71,31 +69,21 @@ async function handleAssets(user, message) {
 }
 
 async function handleInitiateWalletGeneration(user, message) {
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/flow",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: "Create a secure Pin for your wallet 🔒",
-        },
-        action: {
-          mode: "PUBLISHED",
-          flowMessageVersion: 3,
-          flowToken: "Flow token",
-          flowId: "1467934914360314",
-          callToActionButton: "Continue",
-          flowAction: "NAVIGATE",
-          flowActionPayload: {
-            screen: "PIN_SCREEN",
-          },
-        },
+  await sendFlow({
+    user,
+    text: "Create a secure Pin for your wallet 🔒",
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "1467934914360314",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "PIN_SCREEN",
       },
     },
   });
-
   user.state = "/wallet:generate";
   await user.save();
 }
@@ -105,27 +93,18 @@ async function handleGenerateWallet(user, message) {
 
   if (!validate.success) {
     const error = zodErrorParser(validate);
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `${error}\n\nPlease try again.`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "1467934914360314",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "PIN_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: `${error}\n\nPlease try again.`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "1467934914360314",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "PIN_SCREEN",
         },
       },
     });
@@ -230,27 +209,18 @@ async function handleWithdrawOptions(user, message) {
 
   if (!validator.success) {
     const error = zodErrorParser(validator);
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `The details you provided are invalid.\n${error}`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "689305550776146",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "WITHDRAW_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: `The details you provided are invalid.\n${error}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "689305550776146",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "WITHDRAW_SCREEN",
         },
       },
     });
@@ -274,16 +244,9 @@ async function handleWithdrawOptions(user, message) {
       text: "Withdrawal request received and is being processed",
     });
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `*An error occurred* ⚠️\n${errorParser(e)}`,
-        },
-      },
+    await sendText({
+      user,
+      text: `*An error occurred* ⚠️\n${errorParser(e)}`,
     });
   }
 }
@@ -399,16 +362,9 @@ async function handleBuyOptions(user, message) {
     });
     await removeCommandExpiry(user);
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `*An error occurred* ⚠️\n${errorParser(e)}`,
-        },
-      },
+    await sendText({
+      text: `*An error occurred* ⚠️\n${errorParser(e)}`,
+      user,
     });
   }
 }
@@ -461,27 +417,16 @@ async function handleSellWalletSelect(user, message) {
   }).then((res) => res.data);
 
   if (!accounts.length) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "You do not have any bank accounts connected to your account. Please connect a bank account to continue",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/accounts:add",
-                title: "Connect Bank Account",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      text: "You do not have any bank accounts connected to your account. Please connect a bank account to continue",
+      user,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:add",
+          title: "Connect Bank Account",
         },
-      },
+      ],
     });
     return;
   }
@@ -493,16 +438,9 @@ async function handleSellWalletSelect(user, message) {
     )
     .join("\n");
   const text = `Choose from your available accounts \nKindly type “1” to select the first account:\n\n${accountsList}`;
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text,
-      },
-    },
+  await sendText({
+    user,
+    text,
   });
 }
 
@@ -519,27 +457,16 @@ async function handleSellAccountSelect(user, message) {
   const selectedIndex = parseInt(message.trim()) - 1;
 
   if (isNaN(selectedIndex)) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Invalid account selected. Please try again.",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/sell",
-                title: "Sell",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Invalid account selected. Please try again.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/sell",
+          title: "Sell",
         },
-      },
+      ],
     });
     return;
   }
@@ -550,27 +477,16 @@ async function handleSellAccountSelect(user, message) {
   const selectedAccount = res[selectedIndex];
 
   if (!selectedAccount) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: "Invalid account selected. Please try again.",
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/sell",
-                title: "Sell",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: "Invalid account selected. Please try again.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/sell",
+          title: "Sell",
         },
-      },
+      ],
     });
     return;
   }
@@ -581,28 +497,18 @@ async function handleSellAccountSelect(user, message) {
     selectedAccount,
   };
   await user.save();
-
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/interactive/flow",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        body: {
-          text: "Fill in the details to sell your crypto",
-        },
-        action: {
-          mode: "PUBLISHED",
-          flowMessageVersion: 3,
-          flowToken: "Flow token",
-          flowId: "1471312790690765",
-          callToActionButton: "Continue",
-          flowAction: "NAVIGATE",
-          flowActionPayload: {
-            screen: "SELL_SCREEN",
-          },
-        },
+  await sendFlow({
+    user,
+    text: "Fill in the details to sell your crypto",
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "1471312790690765",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "SELL_SCREEN",
       },
     },
   });
@@ -620,27 +526,18 @@ async function handleSellOptions(user, message) {
 
   if (!validator.success) {
     const error = zodErrorParser(validator);
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `The details you provided are invalid.\n${error}`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "1471312790690765",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "SELL_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: `The details you provided are invalid.\n${error}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "1471312790690765",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SELL_SCREEN",
         },
       },
     });
@@ -662,51 +559,31 @@ async function handleSellOptions(user, message) {
     }).then((res) => res.data);
     user.state = "/menu";
     await user.save();
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/buttons",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `ℹ️ Transaction ${response.transaction_status}, ${response.transfer_details.message}`,
-          },
-          action: {
-            buttons: [
-              {
-                type: "REPLY",
-                id: "/menu",
-                title: "Menu",
-              },
-            ],
-          },
+    await sendInteractiveButtons({
+      user,
+      text: `ℹ️ Transaction ${response.transaction_status}, ${response.transfer_details.message}`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Menu",
         },
-      },
+      ],
     });
     await removeCommandExpiry(user);
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/interactive/flow",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          body: {
-            text: `⚠️ An error occurred.\n${errorParser(e)}`,
-          },
-          action: {
-            mode: "PUBLISHED",
-            flowMessageVersion: 3,
-            flowToken: "Flow token",
-            flowId: "1471312790690765",
-            callToActionButton: "Continue",
-            flowAction: "NAVIGATE",
-            flowActionPayload: {
-              screen: "SELL_SCREEN",
-            },
-          },
+    await sendFlow({
+      user,
+      text: `⚠️ An error occurred.\n${errorParser(e)}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "1471312790690765",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SELL_SCREEN",
         },
       },
     });
