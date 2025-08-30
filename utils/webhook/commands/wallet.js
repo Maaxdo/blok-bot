@@ -591,7 +591,7 @@ async function handleSellOptions(user, message) {
         user_id: metadata.userId,
         wallet_type: metadata.wallet,
         bank_account_id: metadata.selectedAccount.id,
-        currency: metadata.wallet,
+        currency: metadata.network,
         network: metadata.network,
         amount: message.amount,
         pin: message.pin,
