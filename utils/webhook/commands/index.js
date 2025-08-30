@@ -34,6 +34,7 @@ const {
   handleSellOptions,
   handleBuyConfirmPayment,
   handleSellNetworksSelect,
+  handleBuyNetworksSelect,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
 const {
@@ -174,6 +175,10 @@ const commands = [
   {
     command: "/buy:options",
     function: auth(handleBuyOptions, false, false),
+  },
+  {
+    command: "/buy:networks:select",
+    function: auth(handleBuyNetworksSelect, false, false),
   },
   {
     command: "/buy:confirm-payment",

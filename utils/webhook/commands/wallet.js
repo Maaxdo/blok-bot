@@ -279,12 +279,48 @@ async function handleBuySelect(user, message) {
     ...metadata,
     wallet,
   };
-  user.state = "/buy:options";
+  user.state = "/buy:networks:select";
   await user.save();
 
+  const cryptos = await cache("cryptos", async () => {
+    const response = await BlokAxios({
+      url: "/crypto/available",
+    });
+    return response.data;
+  });
+
+  const networks =
+    cryptos.find((item) => item.symbol === wallet)?.networks || [];
+
+  await sendInteractiveButtons({
+    user,
+    text: `Select the network you would like to use for ${wallet}`,
+    buttons: networks.map((network) => ({
+      type: "REPLY",
+      id: network,
+      title: network,
+    })),
+  });
+}
+
+async function handleBuyNetworksSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+  if (hasExpired) {
+    await commandExpiryAction(user, "/buy", 20);
+    return;
+  }
+  const metadata = user.metadata;
+  const network = message.trim();
+
+  user.metadata = {
+    ...metadata,
+    network,
+  };
+  user.state = "/buy:options";
+  await user.save();
   await sendFlow({
     user,
-    text: `I'll need a few details to process your transaction ${wallet}`,
+    text: `I'll need a few details to process your transaction ${metadata.wallet} on ${network} network`,
     action: {
       mode: "PUBLISHED",
       flowMessageVersion: 3,
@@ -338,7 +374,8 @@ async function handleBuyOptions(user, message) {
       data: {
         user_id: metadata.userId,
         wallet_type: metadata.wallet,
-        currency: metadata.wallet,
+        currency: metadata.network,
+        network: metadata.network,
         pin: message.pin,
         amount: message.amount,
       },
@@ -759,4 +796,5 @@ module.exports = {
   handleSellAccountSelect,
   handleSellOptions,
   handleSellNetworksSelect,
+  handleBuyNetworksSelect,
 };
