@@ -363,6 +363,7 @@ async function handleBuyOptions(user, message) {
     });
     await removeCommandExpiry(user);
   } catch (e) {
+    logger.error("An error occured", e);
     await sendText({
       text: `*An error occurred* ⚠️\n${errorParser(e)}`,
       user,
