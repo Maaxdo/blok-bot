@@ -336,6 +336,11 @@ async function handleBuyNetworksSelect(user, message) {
 }
 
 async function handleDestinationAddressPromptYes(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+  if (hasExpired) {
+    await commandExpiryAction(user, "/buy", 20);
+    return;
+  }
   await sendText({
     user,
     text: "Provide a destination address: (E.g Tr0X...)",
@@ -345,11 +350,17 @@ async function handleDestinationAddressPromptYes(user, message) {
 }
 
 async function handleDestinationAddressPromptNo(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+  if (hasExpired) {
+    await commandExpiryAction(user, "/buy", 20);
+    return;
+  }
+  const metadata = user.metadata;
   user.state = "/buy:options";
   await user.save();
   await sendFlow({
     user,
-    text: `I'll need a few details to process your transaction ${metadata.wallet} on ${network} network`,
+    text: `I'll need a few details to process your transaction ${metadata.wallet} on ${metadata.network} network`,
     action: {
       mode: "PUBLISHED",
       flowMessageVersion: 3,
@@ -365,6 +376,11 @@ async function handleDestinationAddressPromptNo(user, message) {
 }
 
 async function handleDestinationAddress(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+  if (hasExpired) {
+    await commandExpiryAction(user, "/buy", 20);
+    return;
+  }
   const destinationAddress = message.trim();
 
   if (!destinationAddress || destinationAddress.length === 0) {
@@ -380,11 +396,42 @@ async function handleDestinationAddress(user, message) {
     ...metadata,
     destinationAddress,
   };
+  user.state = "/buy:destination:address:confirm";
+  await user.save();
+  await sendText({
+    user,
+    text: "Type in the destination address again to confirm your transaction.\n*Please note that assets sent to the wrong address cannot be recovered*",
+  });
+}
+
+async function handleDestinationAddressConfirm(user, message) {
+  const hasExpired = getCommandExpiry(user, "/buy");
+  if (hasExpired) {
+    await commandExpiryAction(user, "/buy", 20);
+    return;
+  }
+  const confirmDestinationAddress = message.trim();
+  const metadata = user.metadata;
+
+  if (metadata.destinationAddress !== confirmDestinationAddress) {
+    await sendInteractiveButtons({
+      user,
+      text: "⚠ Addresses provided do no match",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/buy:destination:yes",
+          title: "Try again",
+        },
+      ],
+    });
+    return;
+  }
   user.state = "/buy:options";
   await user.save();
   await sendFlow({
     user,
-    text: `I'll need a few details to process your transaction ${metadata.wallet} on ${network} network`,
+    text: `I'll need a few details to process your transaction ${metadata.wallet} on ${metadata.network} network`,
     action: {
       mode: "PUBLISHED",
       flowMessageVersion: 3,
@@ -480,8 +527,8 @@ async function handleBuyConfirmPayment(user, message) {
     buttons: [
       {
         type: "REPLY",
-        id: "/menu",
-        title: "Back to menu",
+        id: "/transactions",
+        title: "View transactions",
       },
     ],
   });
@@ -708,8 +755,8 @@ async function handleSellOptions(user, message) {
       buttons: [
         {
           type: "REPLY",
-          id: "/menu",
-          title: "Menu",
+          id: "/transactions",
+          title: "View transactions",
         },
       ],
     });
@@ -846,12 +893,6 @@ module.exports = {
   handleAssets,
   handleInitiateWalletGeneration,
   handleGenerateWallet,
-  handleDeposit,
-  handleDepositWalletSelect,
-  handleDepositNetworkSelect,
-  handleWithdraw,
-  handleWithdrawSelect,
-  handleWithdrawOptions,
   handleBuy,
   handleBuySelect,
   handleBuyOptions,
@@ -865,4 +906,5 @@ module.exports = {
   handleDestinationAddressPromptYes,
   handleDestinationAddressPromptNo,
   handleDestinationAddress,
+  handleDestinationAddressConfirm,
 };

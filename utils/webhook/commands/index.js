@@ -32,6 +32,7 @@ const {
   handleDestinationAddress,
   handleDestinationAddressPromptYes,
   handleDestinationAddressPromptNo,
+  handleDestinationAddressConfirm,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
 const {
@@ -192,6 +193,10 @@ const commands = [
   {
     command: "/buy:destination:address",
     function: auth(handleDestinationAddress, false, false),
+  },
+  {
+    command: "/buy:destination:address:confirm",
+    function: auth(handleDestinationAddressConfirm, false, false),
   },
   {
     command: "/sell",

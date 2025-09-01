@@ -13,6 +13,7 @@ const {
   commandExpiryAction,
   removeCommandExpiry,
 } = require("../../common/expiry");
+const { logger } = require("../../common/logger");
 
 const datesFlow = {
   mode: "PUBLISHED",
@@ -87,12 +88,31 @@ async function handleTransactionsDate(user, message) {
     const paginate = paginateExternally(res.total, res.page, res.limit);
     const buttons = getPaginationButtons(paginate, "/transactions");
 
+    if (res.transactions.length === 0) {
+      await sendInteractiveButtons({
+        user,
+        text: `You have no transactions from ${message.startDate} to ${message.endDate}`,
+        buttons: [
+          {
+            id: "/transactions",
+            type: "REPLY",
+            title: "Try again",
+          },
+        ],
+      });
+      return;
+    }
+
+    const text = getTransactionsText(res.transactions);
+
     await sendInteractiveButtons({
       user,
-      text: getTransactionsText(res.transactions),
+      text,
       buttons,
     });
   } catch (e) {
+    console.log(e.response.data.requestError.serviceException.validationErrors);
+    logger.error(errorParser(e), e);
     user.state = "/transactions";
     await user.save();
     await sendInteractiveButtons({
