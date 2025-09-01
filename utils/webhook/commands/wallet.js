@@ -890,12 +890,25 @@ async function handleDepositNetworkSelect(user, message) {
 }
 
 async function handleAddress(user, message) {
+  const hasExpired = getCommandExpiry(user, "/address");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/address", 20);
+    return;
+  }
+
   await sendWalletOptions(user);
   user.state = "/address:wallet:select";
   await user.save();
 }
 
 async function handleAddressWalletSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/address");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/address", 20);
+    return;
+  }
   const wallet = message.trim();
   const validator = WalletSchema.safeParse({ wallet });
 
@@ -933,6 +946,12 @@ async function handleAddressWalletSelect(user, message) {
 }
 
 async function handleAddressNetworkSelect(user, message) {
+  const hasExpired = getCommandExpiry(user, "/address");
+
+  if (hasExpired) {
+    await commandExpiryAction(user, "/address", 20);
+    return;
+  }
   const network = message.trim();
   const userWallets = await BlokAxios({
     url: "/wallet",
