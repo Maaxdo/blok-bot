@@ -18,12 +18,6 @@ const { auth } = require("../authWrapper");
 const {
   handleInitiateWalletGeneration,
   handleGenerateWallet,
-  handleDeposit,
-  handleWithdraw,
-  handleWithdrawSelect,
-  handleDepositWalletSelect,
-  handleDepositNetworkSelect,
-  handleWithdrawOptions,
   handleAssets,
   handleBuy,
   handleBuySelect,
@@ -35,6 +29,9 @@ const {
   handleBuyConfirmPayment,
   handleSellNetworksSelect,
   handleBuyNetworksSelect,
+  handleDestinationAddress,
+  handleDestinationAddressPromptYes,
+  handleDestinationAddressPromptNo,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
 const {
@@ -183,6 +180,18 @@ const commands = [
   {
     command: "/buy:confirm-payment",
     function: auth(handleBuyConfirmPayment, false, false),
+  },
+  {
+    command: "/buy:destination:yes",
+    function: auth(handleDestinationAddressPromptYes, false, false),
+  },
+  {
+    command: "/buy:destination:no",
+    function: auth(handleDestinationAddressPromptNo, false, false),
+  },
+  {
+    command: "/buy:destination:address",
+    function: auth(handleDestinationAddress, false, false),
   },
   {
     command: "/sell",

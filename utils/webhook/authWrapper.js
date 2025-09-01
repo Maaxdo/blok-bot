@@ -1,8 +1,9 @@
-const { twilioClient } = require("../../helpers/webhook/twilio");
 const { InfoBipAxios } = require("../../helpers/webhook/infobip");
 const { infobip } = require("../../config/app");
 const { BlokAxios } = require("../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../constants/wallets");
+const { sendText } = require("../../helpers/bot/infobip");
+const { text } = require("express");
 
 function auth(func, checkKyc = false, checkWallet = false) {
   return async (user, message) => {
@@ -105,10 +106,9 @@ function guest(func) {
           You are already logged in to your account:\n
           Use /logout to logout from your account
           `;
-      await twilioClient.messages.create({
-        body: textBody,
-        from: process.env.TWILO_FROM,
-        to: `whatsapp:+${user.phone}`,
+      await sendText({
+        user,
+        text: textBody,
       });
       return;
     }

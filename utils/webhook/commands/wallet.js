@@ -316,6 +316,70 @@ async function handleBuyNetworksSelect(user, message) {
     ...metadata,
     network,
   };
+  await user.save();
+  await sendInteractiveButtons({
+    user,
+    text: "Do you want to add a destination address?",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/buy:destination:yes",
+        title: "Yes",
+      },
+      {
+        type: "REPLY",
+        id: "/buy:destination:no",
+        title: "No, fund Blok wallet",
+      },
+    ],
+  });
+}
+
+async function handleDestinationAddressPromptYes(user, message) {
+  await sendText({
+    user,
+    text: "Provide a destination address: (E.g Tr0X...)",
+  });
+  user.state = "/buy:destination:address";
+  await user.save();
+}
+
+async function handleDestinationAddressPromptNo(user, message) {
+  user.state = "/buy:options";
+  await user.save();
+  await sendFlow({
+    user,
+    text: `I'll need a few details to process your transaction ${metadata.wallet} on ${network} network`,
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "24035309786120142",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "BUY_SCREEN",
+      },
+    },
+  });
+}
+
+async function handleDestinationAddress(user, message) {
+  const destinationAddress = message.trim();
+
+  if (!destinationAddress || destinationAddress.length === 0) {
+    await sendText({
+      user,
+      text: "Invalid destination address",
+    });
+    return;
+  }
+
+  const metadata = user.metadata;
+  user.metadata = {
+    ...metadata,
+    destinationAddress,
+  };
   user.state = "/buy:options";
   await user.save();
   await sendFlow({
@@ -378,6 +442,7 @@ async function handleBuyOptions(user, message) {
         network: metadata.network,
         pin: message.pin,
         amount: message.amount,
+        destination_address: metadata.destinationAddress,
       },
     }).then((res) => res.data);
     user.state = null;
@@ -797,4 +862,7 @@ module.exports = {
   handleSellOptions,
   handleSellNetworksSelect,
   handleBuyNetworksSelect,
+  handleDestinationAddressPromptYes,
+  handleDestinationAddressPromptNo,
+  handleDestinationAddress,
 };
