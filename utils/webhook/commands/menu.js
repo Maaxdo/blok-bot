@@ -7,6 +7,11 @@ const options = [
     id: "/my-assets",
   },
   {
+    title: "View your address",
+    id: "/address",
+    nplMessage: 'or "I want to view my address"',
+  },
+  {
     title: "View rates",
     id: "/rates",
   },

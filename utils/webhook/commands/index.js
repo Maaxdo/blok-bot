@@ -33,6 +33,9 @@ const {
   handleDestinationAddressPromptYes,
   handleDestinationAddressPromptNo,
   handleDestinationAddressConfirm,
+  handleAddress,
+  handleAddressWalletSelect,
+  handleAddressNetworkSelect,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
 const {
@@ -157,6 +160,18 @@ const commands = [
   {
     command: "/my-assets",
     function: auth(handleAssets, false, false),
+  },
+  {
+    command: "/address",
+    function: auth(handleAddress, false, false),
+  },
+  {
+    command: "/address:wallet:select",
+    function: auth(handleAddressWalletSelect, false, false),
+  },
+  {
+    command: "/address:network:select",
+    function: auth(handleAddressNetworkSelect, false, false),
   },
   {
     command: "/menu",

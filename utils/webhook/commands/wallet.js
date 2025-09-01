@@ -889,6 +889,84 @@ async function handleDepositNetworkSelect(user, message) {
   await removeCommandExpiry(user);
 }
 
+async function handleAddress(user, message) {
+  await sendWalletOptions(user);
+  user.state = "/address:wallet:select";
+  await user.save();
+}
+
+async function handleAddressWalletSelect(user, message) {
+  const wallet = message.trim();
+  const validator = WalletSchema.safeParse({ wallet });
+
+  if (!validator.success) {
+    await sendWalletOptions(user, "Invalid wallet selected. Try again");
+    return;
+  }
+
+  const metadata = user.metadata;
+  user.metadata = {
+    ...metadata,
+    wallet,
+  };
+  user.state = "/address:network:select";
+  await user.save();
+
+  const cryptos = await cache("cryptos", async () => {
+    const response = await BlokAxios({
+      url: "/crypto/available",
+    });
+    return response.data;
+  });
+
+  const networks =
+    cryptos.find((item) => item.symbol === wallet)?.networks || [];
+  await sendInteractiveButtons({
+    user,
+    text: `Select the network you would like to use for ${wallet}`,
+    buttons: networks.map((network) => ({
+      type: "REPLY",
+      id: network,
+      title: network,
+    })),
+  });
+}
+
+async function handleAddressNetworkSelect(user, message) {
+  const network = message.trim();
+  const userWallets = await BlokAxios({
+    url: "/wallet",
+    params: {
+      user_id: user.metadata.userId,
+    },
+  }).then((res) => res.data.wallets);
+  const selectedWallet = userWallets.find(
+    (item) =>
+      item.wallet_type === user.metadata.wallet && item.network === network,
+  );
+
+  if (!selectedWallet) {
+    await sendInteractiveButtons({
+      user,
+      text: "The wallet you requested for is not available",
+      buttons: [
+        {
+          type: "REPLY",
+          title: "Try again",
+          id: "/address",
+        },
+      ],
+    });
+    return;
+  }
+  const address = selectedWallet.address;
+
+  await sendText({
+    user,
+    text: address,
+  });
+}
+
 module.exports = {
   handleAssets,
   handleInitiateWalletGeneration,
@@ -907,4 +985,7 @@ module.exports = {
   handleDestinationAddressPromptNo,
   handleDestinationAddress,
   handleDestinationAddressConfirm,
+  handleAddress,
+  handleAddressNetworkSelect,
+  handleAddressWalletSelect,
 };
