@@ -2,7 +2,7 @@ const { Cache } = require("../../db/models");
 
 const EXPIRY_TIME = 7 * 24 * 60 * 60 * 1000;
 
-async function cache(key, refetchFunc) {
+async function cache(key, refetchFunc, expiresAt = EXPIRY_TIME) {
   const savedCache = await Cache.findOne({
     key,
   });
@@ -12,7 +12,7 @@ async function cache(key, refetchFunc) {
     await new Cache({
       key,
       metadata,
-      expiresAt: new Date(Date.now() + EXPIRY_TIME),
+      expiresAt: new Date(Date.now() + expiresAt),
     }).save();
     return metadata;
   }
