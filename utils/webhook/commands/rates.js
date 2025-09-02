@@ -11,7 +11,7 @@ async function handleRates(user, message) {
   await refreshCommandExpiry(user, "/rates");
   user.state = "/rates:wallet";
   await user.save();
-  await sendWalletOptions(user);
+  await sendWalletOptions(user, "Choose from the available crypto options");
 }
 
 async function handleRatesWallet(user, message) {
