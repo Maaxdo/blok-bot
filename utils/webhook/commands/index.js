@@ -119,11 +119,11 @@ const commands = [
   },
   {
     command: "/rates",
-    function: handleRates,
+    function: auth(handleRates, false, false),
   },
   {
     command: "/rates:wallet",
-    function: handleRatesWallet,
+    function: auth(handleRatesWallet, false, false),
   },
   {
     command: "/wallet:initiate",
