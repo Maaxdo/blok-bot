@@ -12,9 +12,12 @@ function getCommandExpiry(user, commandCategory) {
   return currentTime > expiry;
 }
 
-async function refreshCommandExpiry(user, commandCategory, durationInMins) {
-  const currentTime = Date.now();
-  const expiryDate = new Date(currentTime + durationInMins * 60 * 1000);
+async function refreshCommandExpiry(
+  user,
+  commandCategory,
+  durationInMins = 20,
+) {
+  const expiryDate = new Date(Date.now() + durationInMins * 60 * 1000);
 
   user.expiryCommand = commandCategory;
   user.expiryCommandDatetime = expiryDate;
@@ -29,13 +32,13 @@ async function removeCommandExpiry(user) {
   await user.save();
 }
 
-async function commandExpiryAction(user, commandCategory, durationInMins) {
+async function commandExpiryAction(user, commandCategory, durationInMins = 20) {
   await refreshCommandExpiry(user, commandCategory, durationInMins);
   user.state = "/menu";
   await user.save();
   await sendInteractiveButtons({
     user,
-    text: "❌ Oops! You have been inactive for 20 minutes and your previous session has timed out. Please type /menu to view the menu commands",
+    text: `❌ Oops! You have been inactive for ${durationInMins} minutes and your previous session has timed out. Please type /menu to view the menu commands`,
     buttons: [
       {
         type: "REPLY",

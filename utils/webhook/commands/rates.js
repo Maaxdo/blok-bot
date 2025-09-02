@@ -25,6 +25,9 @@ async function handleRatesWallet(user, message) {
     );
     return;
   }
+  const res = await BlokAxios({
+    url: `/rates/${wallet}`,
+  }).then((res) => res.data);
   const lastUpdated = new Intl.DateTimeFormat("en-US", {
     day: "numeric",
     month: "long",
@@ -33,10 +36,7 @@ async function handleRatesWallet(user, message) {
     minute: "2-digit",
     second: "2-digit",
   }).format(new Date(res.last_updated));
-  const res = await BlokAxios({
-    url: `/rates/${wallet}`,
-  }).then((res) => res.data);
-  const text = `Rate details 💹:\n\n*Wallet type: *${wallet}\n*Name: *${res.crypto_name}\n*Buy rate: *${res.buy.toLocaleString()}\n*Sell rate: *${res.sell.toLocaleString()}\n*Current rate: *${res.current_rate.toLocaleString()}\n*Last updated: *${lastUpdated}`;
+  const text = `Rate details 💹:\n\n*Wallet type:* ${wallet}\n*Name:* ${res.crypto_name}\n*Buy rate:* ₦${res.buy.toLocaleString()}\n*Sell rate:* ₦${res.sell.toLocaleString()}\n*Current rate:* ₦${res.current_rate.toLocaleString()}\n*Last updated:* ${lastUpdated}`;
 
   await sendText({ user, text });
   await removeCommandExpiry(user);

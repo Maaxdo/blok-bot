@@ -22,7 +22,7 @@ const DepositSchema = z.object(
     wallet: z.enum(["USDT", "SOL", "BTC", "ETH", "BNB"]),
   },
   {
-    message: "Invalid wallet provided",
+    message: "Invalid wallet provided.",
   },
 );
 
