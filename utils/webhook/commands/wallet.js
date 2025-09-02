@@ -890,16 +890,10 @@ async function handleDepositNetworkSelect(user, message) {
 }
 
 async function handleAddress(user, message) {
-  const hasExpired = getCommandExpiry(user, "/address");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/address", 20);
-    return;
-  }
-
   await sendWalletOptions(user);
   user.state = "/address:wallet:select";
   await user.save();
+  await refreshCommandExpiry(user, "/sell", 20);
 }
 
 async function handleAddressWalletSelect(user, message) {
