@@ -57,7 +57,7 @@ const {
   handleTransactionsNext,
   handleTransactionsPrev,
 } = require("./transactions");
-const { handleRates, handleRatesWallet } = require("./rates");
+const { handleRates } = require("./rates");
 const { handleSupport } = require("./support");
 
 const commands = [
@@ -120,10 +120,6 @@ const commands = [
   {
     command: "/rates",
     function: auth(handleRates, false, false),
-  },
-  {
-    command: "/rates:wallet",
-    function: auth(handleRatesWallet, false, false),
   },
   {
     command: "/wallet:initiate",
