@@ -4,7 +4,6 @@ const { sendText } = require("../../helpers/bot/infobip");
 
 async function handleFintavaWebhook(req, res) {
   const body = req.body;
-  logger.log("info", "Received Fintava webhook", { body });
 
   try {
     if (body.event === "buy_success") {
@@ -12,21 +11,18 @@ async function handleFintavaWebhook(req, res) {
         "metadata.userId": body.user_id,
       });
       if (!user) {
-        logger.log("info", "User not found", {});
-
         return res.status(404).send("User not found");
       }
-      logger.log("info", "User found", { user });
 
       await sendText({
         user,
-        text: body.message,
+        text: `✅ ${body.message}`,
       });
       return res.status(200).send("EVENT_RECEIVED");
     }
     return res.status(200).send("EVENT_RECEIVED: Invalid event");
   } catch (err) {
-    logger.error("Error", err);
+    logger.error("Fintava Webhook Error", err);
   }
 }
 
