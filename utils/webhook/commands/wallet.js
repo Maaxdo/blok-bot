@@ -469,6 +469,10 @@ async function handleBuyOptions(user, message) {
       },
     }).then((res) => res.data);
     user.state = null;
+    user.metadata = {
+      token: metadata.token,
+      userId: metadata.userId,
+    };
     await user.save();
 
     await sendInteractiveButtons({

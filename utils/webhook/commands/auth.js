@@ -243,6 +243,15 @@ async function handleRegistrationConfirm(user, message) {
       return;
     }
     const metadata = user.metadata;
+    const validator = RegisterSchema.safeParse(message);
+
+    if (!validator.success) {
+      sendText({
+        user,
+        text: `⚠ Invalid details provided. ${validator.error.message}`,
+      });
+      return;
+    }
 
     await BlokAxios({
       url: "/signup/details",

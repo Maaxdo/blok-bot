@@ -27,6 +27,7 @@ const RegisterSchema = z
       firstName: z.string().min(1, "First name is required"),
       lastName: z.string().min(1, "Last name is required"),
       confirmPassword: z.string(),
+      dob: z.string().min(1, "Date of birth is required"),
     },
     {
       message: "Invalid registration information",
