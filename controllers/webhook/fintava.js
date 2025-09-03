@@ -8,7 +8,9 @@ async function handleFintavaWebhook(req, res) {
 
   try {
     if (body.event === "buy_success") {
-      const user = await User.findById(body.user_id);
+      const user = await User.findOne({
+        _id: body.user_id,
+      });
       if (!user) {
         logger.log("info", "User not found", {});
 
