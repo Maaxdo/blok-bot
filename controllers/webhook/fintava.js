@@ -17,12 +17,13 @@ async function handleFintavaWebhook(req, res) {
       await sendText({
         user,
         text: `✅ ${body.message}`,
+        // text: `✅ *Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`,
       });
       return res.status(200).send("EVENT_RECEIVED");
     }
     return res.status(200).send("EVENT_RECEIVED: Invalid event");
   } catch (err) {
-    logger.error("Fintava Webhook Error", err);
+    logger.error("Webhook Error", err);
   }
 }
 

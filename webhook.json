@@ -1,0 +1,20 @@
+{
+  "body": {
+    "event": "buy_success",
+    "message": "Buy Complete! 4.9 USDT has been sent to your wallet Transaction hash: ff42e75cfb210d5845da...",
+    "timestamp": "2025-09-03T18:12:07.337083",
+    "transaction": {
+      "amount": 4.9,
+      "created_at": "2025-09-03T18:09:12.894000",
+      "currency": "USDT",
+      "id": "68b884482f53477f8f911179",
+      "naira_amount": 7484.46,
+      "status": "pending_deposit",
+      "type": "buy"
+    },
+    "user_id": "687fab98f7ce16402771af38"
+  },
+  "level": "info",
+  "message": "Received Fintava webhook",
+  "timestamp": "2025-09-03 18:12:07"
+}
