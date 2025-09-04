@@ -97,16 +97,24 @@ async function handleGenerateWallet(user, message) {
       },
     }).then((res) => res.data.wallets);
 
-    for (const type of WALLET_TYPES) {
-      const prevWallet = wallets.find((wallet) => wallet.wallet_type === type);
+    const tokens = await cache("cryptos", async () => {
+    return await BlokAxios({
+      url: "/crypto/available",
+    }).then(res=> res.data);
+  });
+
+    for (const type of tokens) {
+
+      for(const network of type.networks){
+       const prevWallet = wallets.find((wallet) => wallet.wallet_type === type.symbol && wallet.network === network);
       if (prevWallet) continue;
       const wallet = await BlokAxios({
         url: "/wallet",
         method: "POST",
         data: {
-          wallet_type: type,
+          wallet_type: type.symbol,
           user_id: metadata.userId,
-          network: "ethereum",
+          network,
         },
       }).then((res) => res.data);
 
@@ -118,6 +126,9 @@ async function handleGenerateWallet(user, message) {
           pin: message.pin,
         },
       });
+      }
+
+     
     }
     user.state = "/menu";
     user.metadata = {
@@ -137,6 +148,8 @@ async function handleGenerateWallet(user, message) {
       ],
     });
   } catch (e) {
+    console.log(JSON.stringify(e));
+    
     await sendText({ user, text: `*An error occurred* ⚠️\n${errorParser(e)}` });
   }
 }

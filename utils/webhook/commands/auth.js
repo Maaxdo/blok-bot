@@ -45,6 +45,7 @@ async function sendAuthPrompt(user) {
 }
 
 async function handleRegisterPrompt(user) {
+  
   const currentState = user.state;
 
   try {
