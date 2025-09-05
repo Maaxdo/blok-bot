@@ -1,7 +1,7 @@
 const { sendText } = require("../../../helpers/bot/infobip");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
 const { cache } = require("../../common/cache");
-const { WALLET_TYPES } = require("../../../constants/wallets");
+const { getTokens } = require("../../common/wallet-options");
 
 const CACHE_EXPIRY_TIME = 5 * 60 * 1000;
 
@@ -10,10 +10,11 @@ async function handleRates(user, message) {
     const rates = await cache(
       "rates",
       async () => {
+        const tokens = await getTokens();
         const responses = await Promise.allSettled(
-          WALLET_TYPES.map((type) =>
+          tokens.map((type) =>
             BlokAxios({
-              url: `/rates/${type}`,
+              url: `/rates/${type.symbol}`,
             }).then((res) => res.data),
           ),
         );
