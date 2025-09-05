@@ -34,6 +34,9 @@ async function handleRates(user, message) {
       return `*Wallet type:* ${rate.crypto_symbol}\n*Token name:* ${rate.crypto_name}\n*Buy rate:* ₦${rate.buy.toLocaleString()}\n*Sell rate:* ₦${rate.sell.toLocaleString()}\n*Last updated:* ${lastUpdated}`;
     });
     const text = `Hey there! 🚀\n\nFresh rates just dropped:\n${ratesString.join("\n-----------------------------------------\n")}\n\n⚡ *Ready to trade? Reply with /buy or /sell to get started!*`;
+
+    console.log(text);
+
     await sendText({
       user,
       text,
