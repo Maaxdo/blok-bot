@@ -35,8 +35,6 @@ async function handleRates(user, message) {
     });
     const text = `Hey there! 🚀\n\nFresh rates just dropped:\n${ratesString.join("\n-----------------------------------------\n")}\n\n⚡ *Ready to trade? Reply with /buy or /sell to get started!*`;
 
-    console.log(text);
-
     await sendText({
       user,
       text,

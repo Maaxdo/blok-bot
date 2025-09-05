@@ -242,9 +242,9 @@ async function handleWithdrawOptions(user, message) {
 }
 
 async function handleBuy(user, message) {
-  await sendWalletOptions(user);
   user.state = "/buy:select";
   await user.save();
+  await sendWalletOptions(user);
   await refreshCommandExpiry(user, "/buy", 20);
 }
 
