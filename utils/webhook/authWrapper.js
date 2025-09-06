@@ -2,8 +2,12 @@ const { InfoBipAxios } = require("../../helpers/webhook/infobip");
 const { infobip } = require("../../config/app");
 const { BlokAxios } = require("../../helpers/webhook/blokbot");
 const { WALLET_TYPES } = require("../../constants/wallets");
-const { sendText } = require("../../helpers/bot/infobip");
+const {
+  sendText,
+  sendInteractiveButtons,
+} = require("../../helpers/bot/infobip");
 const { text } = require("express");
+const { getTokens } = require("../common/wallet-options");
 
 function auth(func, checkKyc = false, checkWallet = false) {
   return async (user, message) => {
@@ -28,27 +32,16 @@ function auth(func, checkKyc = false, checkWallet = false) {
 
     const metadata = user.metadata;
     if (checkKyc && !metadata.hasVerifiedKyc) {
-      await InfoBipAxios({
-        url: "/whatsapp/1/message/interactive/buttons",
-        method: "POST",
-        data: {
-          from: infobip.phone,
-          to: user.phone,
-          content: {
-            body: {
-              text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
-            },
-            action: {
-              buttons: [
-                {
-                  type: "REPLY",
-                  id: "/kyc",
-                  title: "Verify KYC",
-                },
-              ],
-            },
+      await sendInteractiveButtons({
+        user,
+        text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
+        buttons: [
+          {
+            type: "REPLY",
+            id: "/kyc",
+            title: "Verify KYC",
           },
-        },
+        ],
       });
       return;
     }
@@ -60,7 +53,9 @@ function auth(func, checkKyc = false, checkWallet = false) {
         },
       }).then((res) => res.data.wallets);
 
-      if (WALLET_TYPES.length === wallets.length) {
+      const tokens = await getTokens();
+
+      if (tokens.length === wallets.length) {
         user.metadata = {
           ...metadata,
           hasWallet: true,
@@ -70,28 +65,18 @@ function auth(func, checkKyc = false, checkWallet = false) {
         return;
       }
 
-      await InfoBipAxios({
-        url: "/whatsapp/1/message/interactive/buttons",
-        method: "POST",
-        data: {
-          from: infobip.phone,
-          to: user.phone,
-          content: {
-            body: {
-              text: "⚠️ *You have not yet setup your wallet*\n",
-            },
-            action: {
-              buttons: [
-                {
-                  type: "REPLY",
-                  id: "/wallet:initiate",
-                  title: "Create wallet",
-                },
-              ],
-            },
+      await sendInteractiveButtons({
+        user,
+        text: "⚠️ *You have not yet setup your wallet*\n",
+        buttons: [
+          {
+            type: "REPLY",
+            id: "/wallet:initiate",
+            title: "Create wallet",
           },
-        },
+        ],
       });
+
       return;
     }
 

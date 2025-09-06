@@ -119,7 +119,7 @@ const commands = [
   },
   {
     command: "/rates",
-    function: auth(handleRates, false, false),
+    function: auth(handleRates, true, true),
   },
   {
     command: "/wallet:initiate",
@@ -159,139 +159,139 @@ const commands = [
   // },
   {
     command: "/my-assets",
-    function: auth(handleAssets, false, false),
+    function: auth(handleAssets, true, true),
   },
   {
     command: "/address",
-    function: auth(handleAddress, false, false),
+    function: auth(handleAddress, true, true),
   },
   {
     command: "/address:wallet:select",
-    function: auth(handleAddressWalletSelect, false, false),
+    function: auth(handleAddressWalletSelect, true, true),
   },
   {
     command: "/address:network:select",
-    function: auth(handleAddressNetworkSelect, false, false),
+    function: auth(handleAddressNetworkSelect, true, true),
   },
   {
     command: "/menu",
-    function: auth(handleMenu, false, false),
+    function: auth(handleMenu, true, true),
   },
   {
     command: "/buy",
-    function: auth(handleBuy, false, false),
+    function: auth(handleBuy, true, true),
   },
   {
     command: "/buy:select",
-    function: auth(handleBuySelect, false, false),
+    function: auth(handleBuySelect, true, true),
   },
   {
     command: "/buy:options",
-    function: auth(handleBuyOptions, false, false),
+    function: auth(handleBuyOptions, true, true),
   },
   {
     command: "/buy:networks:select",
-    function: auth(handleBuyNetworksSelect, false, false),
+    function: auth(handleBuyNetworksSelect, true, true),
   },
   {
     command: "/buy:confirm-payment",
-    function: auth(handleBuyConfirmPayment, false, false),
+    function: auth(handleBuyConfirmPayment, true, true),
   },
   {
     command: "/buy:destination:yes",
-    function: auth(handleDestinationAddressPromptYes, false, false),
+    function: auth(handleDestinationAddressPromptYes, true, true),
   },
   {
     command: "/buy:destination:no",
-    function: auth(handleDestinationAddressPromptNo, false, false),
+    function: auth(handleDestinationAddressPromptNo, true, true),
   },
   {
     command: "/buy:destination:address",
-    function: auth(handleDestinationAddress, false, false),
+    function: auth(handleDestinationAddress, true, true),
   },
   {
     command: "/buy:destination:address:confirm",
-    function: auth(handleDestinationAddressConfirm, false, false),
+    function: auth(handleDestinationAddressConfirm, true, true),
   },
   {
     command: "/sell",
-    function: auth(handleSell, false, false),
+    function: auth(handleSell, true, true),
   },
   {
     command: "/sell:wallet:select",
-    function: auth(handleSellWalletSelect, false, false),
+    function: auth(handleSellWalletSelect, true, true),
   },
   {
     command: "/sell:account:select",
-    function: auth(handleSellAccountSelect, false, false),
+    function: auth(handleSellAccountSelect, true, true),
   },
   {
     command: "/sell:options",
-    function: auth(handleSellOptions, false, false),
+    function: auth(handleSellOptions, true, true),
   },
   {
     command: "/sell:networks:select",
-    function: auth(handleSellNetworksSelect, false, false),
+    function: auth(handleSellNetworksSelect, true, true),
   },
   {
     command: "/accounts",
-    function: auth(handleAccounts, false, false),
+    function: auth(handleAccounts, true, true),
   },
   {
     command: "/accounts:add",
-    function: auth(handleAccountAdd, false, false),
+    function: auth(handleAccountAdd, true, true),
   },
   {
     command: "/accounts:banks",
-    function: auth(handleBankOptions, false, false),
+    function: auth(handleBankOptions, true, true),
   },
   {
     command: "/accounts:add:number",
-    function: auth(handleAccountAddNumber, false, false),
+    function: auth(handleAccountAddNumber, true, true),
   },
   {
     command: "/accounts:add:cancel",
-    function: auth(handleAccountAddCancel, false, false),
+    function: auth(handleAccountAddCancel, true, true),
   },
   {
     command: "/accounts:add:confirm",
-    function: auth(handleAccountAddConfirm, false, false),
+    function: auth(handleAccountAddConfirm, true, true),
   },
   {
     command: "/accounts:banks:select",
-    function: auth(handleBankSelect, false, false),
+    function: auth(handleBankSelect, true, true),
   },
   {
     command: "/accounts:delete",
-    function: auth(handleAccountDelete, false, false),
+    function: auth(handleAccountDelete, true, true),
   },
   {
     command: "/accounts:delete:select",
-    function: auth(handleAccountDeleteSelect, false, false),
+    function: auth(handleAccountDeleteSelect, true, true),
   },
   {
     command: "/accounts:delete:cancel",
-    function: auth(handleAccountDeleteCancel, false, false),
+    function: auth(handleAccountDeleteCancel, true, true),
   },
   {
     command: "/accounts:delete:confirm",
-    function: auth(handleAccountDeleteConfirm, false, false),
+    function: auth(handleAccountDeleteConfirm, true, true),
   },
   {
     command: "/transactions",
-    function: auth(handleTransactions, false, false),
+    function: auth(handleTransactions, true, true),
   },
   {
     command: "/transactions:dates",
-    function: auth(handleTransactionsDate, false, false),
+    function: auth(handleTransactionsDate, true, true),
   },
   {
     command: "/transactions:next",
-    function: auth(handleTransactionsNext, false, false),
+    function: auth(handleTransactionsNext, true, true),
   },
   {
     command: "/transactions:prev",
-    function: auth(handleTransactionsPrev, false, false),
+    function: auth(handleTransactionsPrev, true, true),
   },
   {
     command: "/support",
