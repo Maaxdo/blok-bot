@@ -131,10 +131,7 @@ async function handleGenerateWallet(user, message) {
       }
     }
     user.state = "/menu";
-    user.metadata = {
-      ...metadata,
-      hasWallet: true,
-    };
+    user.hasWallet = true;
     await user.save();
     await sendInteractiveButtons({
       user,

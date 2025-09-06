@@ -60,10 +60,8 @@ async function handleKycBVN(user, message) {
       ],
     });
     user.state = "/menu";
-    user.metadata = {
-      ...metadata,
-      hasVerifiedKyc: true,
-    };
+    user.hasVerifiedKyc = true;
+
     await user.save();
   } catch (e) {
     await sendText({ user, text: `⚠️ An error occured\n${errorParser(e)}` });

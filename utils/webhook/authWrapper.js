@@ -1,12 +1,10 @@
 const { InfoBipAxios } = require("../../helpers/webhook/infobip");
 const { infobip } = require("../../config/app");
 const { BlokAxios } = require("../../helpers/webhook/blokbot");
-const { WALLET_TYPES } = require("../../constants/wallets");
 const {
   sendText,
   sendInteractiveButtons,
 } = require("../../helpers/bot/infobip");
-const { text } = require("express");
 const { getTokens } = require("../common/wallet-options");
 
 function auth(func, checkKyc = false, checkWallet = false) {
@@ -31,7 +29,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
     }
 
     const metadata = user.metadata;
-    if (checkKyc && !metadata.hasVerifiedKyc) {
+    if (checkKyc && !user.hasVerifiedKyc) {
       await sendInteractiveButtons({
         user,
         text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
@@ -45,7 +43,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
       });
       return;
     }
-    if (checkWallet && !metadata.hasWallet) {
+    if (checkWallet && !user.hasWallet) {
       const wallets = await BlokAxios({
         url: "/wallet",
         params: {
@@ -56,10 +54,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
       const tokens = await getTokens();
 
       if (tokens.length === wallets.length) {
-        user.metadata = {
-          ...metadata,
-          hasWallet: true,
-        };
+        user.hasWallet = true;
         await user.save();
         await func(user, message);
         return;

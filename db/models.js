@@ -23,6 +23,14 @@ const UserSchema = mongoose.Schema(
       type: Date,
       default: null,
     },
+    hasVerifiedKyc: {
+      type: Boolean,
+      default: false,
+    },
+    hasWallet: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
