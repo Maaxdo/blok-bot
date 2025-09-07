@@ -23,7 +23,7 @@ async function handleRates(user, message) {
       CACHE_EXPIRY_TIME,
     );
     const ratesString = rates.map((rate) => {
-      return `*Wallet type:* ${rate.crypto_symbol}\n*Token name:* ${rate.crypto_name}\n*Buy rate:* ₦${rate.buy.toLocaleString()}\n*Sell rate:* ₦${rate.sell.toLocaleString()}`;
+      return `*Buy rate:* ₦${rate.buy.toLocaleString()}\n*Sell rate:* ₦${rate.sell.toLocaleString()}`;
     });
     const text = `Hey there! 🚀\n\nFresh rates just dropped:\n${ratesString.join("\n-----------------------------------------\n")}\n\n⚡ *Ready to trade? Reply with /buy or /sell to get started!*`;
 
