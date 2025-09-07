@@ -2,26 +2,26 @@ const { sendText } = require("../../../helpers/bot/infobip");
 
 const options = [
   {
-    title: "💰 View your assets - Type /my-assets",
+    title: "💰 View your assets",
     id: "/my-assets",
     nplMessage: 'or "I want to view my assets"',
   },
   {
-    title: "📜 View your transactions - Type /transactions",
+    title: "📜 View your transactions",
     id: "/transactions",
   },
   {
-    title: "📊 View rates - Type /rates",
+    title: "📊 View rates",
     id: "/rates",
     nplMessage: 'or "I want to see the latest rates"',
   },
   {
-    title: "🪙 Buy Crypto - Type /buy or “I want to buy crypto”",
+    title: "🪙 Buy Crypto",
     id: "/buy",
     nplMessage: 'or "I want to buy crypto"',
   },
   {
-    title: "💵 Sell Crypto - Type /sell or “I want to sell crypto”",
+    title: "💵 Sell Crypto",
     id: "/sell",
     nplMessage: 'or "I want to sell crypto"',
   },
@@ -30,7 +30,7 @@ const options = [
     id: "/accounts",
   },
   {
-    title: '🏦 View your address - Type /address or "I want to see my address"',
+    title: "🏦 View your address",
     id: "/address",
     nplMessage: 'or "I want to see my address"',
   },
