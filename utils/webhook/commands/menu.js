@@ -1,5 +1,3 @@
-const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
-const { infobip } = require("../../../config/app");
 const { sendText } = require("../../../helpers/bot/infobip");
 
 const options = [
@@ -15,6 +13,7 @@ const options = [
   {
     title: "📊 View rates - Type /rates",
     id: "/rates",
+    nplMessage: 'or "I want to see the latest rates"',
   },
   {
     title: "🪙 Buy Crypto - Type /buy or “I want to buy crypto”",
@@ -31,10 +30,9 @@ const options = [
     id: "/accounts",
   },
   {
-    title:
-      '🏦 View your address - Type /address or "I want to see the latest rates"',
+    title: '🏦 View your address - Type /address or "I want to see my address"',
     id: "/address",
-    nplMessage: 'or "I want to see the latest rates"',
+    nplMessage: 'or "I want to see my address"',
   },
   {
     title: "👤 View your profile - Type /profile",

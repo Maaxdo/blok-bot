@@ -120,6 +120,7 @@ const commands = [
   {
     command: "/rates",
     function: auth(handleRates, true, true),
+    nplMessage: "I want to see the latest rates",
   },
   {
     command: "/wallet:initiate",
@@ -160,10 +161,12 @@ const commands = [
   {
     command: "/my-assets",
     function: auth(handleAssets, true, true),
+    nplMessage: "I want to view my assets",
   },
   {
     command: "/address",
     function: auth(handleAddress, true, true),
+    nplMessage: "I want to see my address",
   },
   {
     command: "/address:wallet:select",
@@ -180,6 +183,7 @@ const commands = [
   {
     command: "/buy",
     function: auth(handleBuy, true, true),
+    nplMessage: "I want to buy crypto",
   },
   {
     command: "/buy:select",
@@ -216,6 +220,7 @@ const commands = [
   {
     command: "/sell",
     function: auth(handleSell, true, true),
+    nplMessage: "I want to sell crypto",
   },
   {
     command: "/sell:wallet:select",

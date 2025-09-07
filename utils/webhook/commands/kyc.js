@@ -48,18 +48,30 @@ async function handleKycBVN(user, message) {
         bvn: message.bvn,
       },
     });
+
     await sendInteractiveButtons({
       user,
       text: "*Congrats!* 🎉\nYour BVN has been successfully verified",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/menu",
-          title: "View menu",
-        },
-      ],
+      buttons: user.hasWallet
+        ? [
+            {
+              type: "REPLY",
+              id: "/menu",
+              title: "View menu",
+            },
+          ]
+        : [
+            {
+              type: "REPLY",
+              id: "/wallet:initiate",
+              title: "Generate wallet",
+            },
+          ],
     });
-    user.state = "/menu";
+
+    if (user.hasWallet) {
+      user.state = "/menu";
+    }
     user.hasVerifiedKyc = true;
 
     await user.save();

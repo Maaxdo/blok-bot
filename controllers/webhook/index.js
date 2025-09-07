@@ -41,14 +41,18 @@ async function handlePostWebhook(req, res) {
   try {
     const user = req.user;
     const message = extractMessage(req.body);
-    const regexTest =
-      typeof message === "string"
-        ? new RegExp(`^I want to ${message.slice(1)}`, "i").test(message)
-        : false;
-    const command = commands.find(
-      (cmd) =>
-        cmd.command === message || cmd.command === `/${message}` || regexTest,
+
+    let command = commands.find(
+      (cmd) => cmd.command === message || cmd.command === `/${message}`,
     );
+
+    if (!command && typeof message === "string") {
+      command = commands.find(
+        (cmd) =>
+          cmd.nplMessage &&
+          message.toLowerCase().includes(cmd.nplMessage?.toLowerCase()),
+      );
+    }
 
     if (command) {
       await command.function(user, message);

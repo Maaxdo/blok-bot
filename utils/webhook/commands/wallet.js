@@ -133,16 +133,25 @@ async function handleGenerateWallet(user, message) {
     user.state = "/menu";
     user.hasWallet = true;
     await user.save();
+
     await sendInteractiveButtons({
       user,
       text: "Congratulations!🎉\nWallet generation was successful!. Verify your kyc with /kyc",
-      buttons: [
-        {
-          type: "REPLY",
-          id: "/kyc",
-          title: "Verify KYC",
-        },
-      ],
+      buttons: !user.hasVerifiedKyc
+        ? [
+            {
+              type: "REPLY",
+              id: "/kyc",
+              title: "Verify KYC",
+            },
+          ]
+        : [
+            {
+              type: "REPLY",
+              id: "/menu",
+              title: "View menu",
+            },
+          ],
     });
   } catch (e) {
     console.log(JSON.stringify(e));
@@ -280,7 +289,7 @@ async function handleBuySelect(user, message) {
 
   await sendInteractiveButtons({
     user,
-    text: `Select the network you would like to use for ${wallet}`,
+    text: `Select the network you would like to purchase ${wallet} from`,
     buttons: networks.map((network) => ({
       type: "REPLY",
       id: network,
