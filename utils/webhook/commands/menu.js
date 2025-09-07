@@ -26,7 +26,7 @@ const options = [
     nplMessage: 'or "I want to sell crypto"',
   },
   {
-    title: "💳 View your saved accounts - Type /accounts",
+    title: "💳 View your saved accounts",
     id: "/accounts",
   },
   {
@@ -35,15 +35,15 @@ const options = [
     nplMessage: 'or "I want to see my address"',
   },
   {
-    title: "👤 View your profile - Type /profile",
+    title: "👤 View your profile",
     id: "/profile",
   },
   {
-    title: "🛠 Support - Type /support",
+    title: "🛠 Support",
     id: "/support",
   },
   {
-    title: "🚪 Logout - Type /logout",
+    title: "🚪 Logout",
     id: "/logout",
   },
 ];
