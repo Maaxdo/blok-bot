@@ -4,7 +4,7 @@ const options = [
   {
     title: "💰 View your assets - Type /my-assets",
     id: "/my-assets",
-    nplMessage: "I want to view my assets",
+    nplMessage: 'or "I want to view my assets"',
   },
   {
     title: "📜 View your transactions - Type /transactions",
