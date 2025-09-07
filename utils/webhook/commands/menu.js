@@ -1,50 +1,52 @@
 const { InfoBipAxios } = require("../../../helpers/webhook/infobip");
 const { infobip } = require("../../../config/app");
+const { sendText } = require("../../../helpers/bot/infobip");
 
 const options = [
   {
-    title: "View your assets",
+    title: "💰 View your assets - Type /my-assets",
     id: "/my-assets",
+    nplMessage: "I want to view my assets",
   },
   {
-    title: "View your address",
-    id: "/address",
-    nplMessage: 'or "I want to view my address"',
+    title: "📜 View your transactions - Type /transactions",
+    id: "/transactions",
   },
   {
-    title: "View rates",
+    title: "📊 View rates - Type /rates",
     id: "/rates",
   },
   {
-    title: "Buy Crypto",
+    title: "🪙 Buy Crypto - Type /buy or “I want to buy crypto”",
     id: "/buy",
     nplMessage: 'or "I want to buy crypto"',
   },
   {
-    title: "Sell Crypto",
+    title: "💵 Sell Crypto - Type /sell or “I want to sell crypto”",
     id: "/sell",
     nplMessage: 'or "I want to sell crypto"',
   },
   {
-    title: "View your saved accounts",
+    title: "💳 View your saved accounts - Type /accounts",
     id: "/accounts",
   },
   {
-    title: "View your transactions",
-    id: "/transactions",
+    title:
+      '🏦 View your address - Type /address or "I want to see the latest rates"',
+    id: "/address",
+    nplMessage: 'or "I want to see the latest rates"',
   },
-
   {
-    title: "View your profile",
+    title: "👤 View your profile - Type /profile",
     id: "/profile",
   },
   {
-    title: "Logout",
-    id: "/logout",
+    title: "🛠 Support - Type /support",
+    id: "/support",
   },
   {
-    title: "Support",
-    id: "/support",
+    title: "🚪 Logout - Type /logout",
+    id: "/logout",
   },
 ];
 
@@ -57,16 +59,9 @@ const optionsString = options
 
 async function handleMenu(user) {
   const text = `Here's what you can do on Blok:\n\n${optionsString}`;
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text,
-      },
-    },
+  await sendText({
+    user,
+    text,
   });
 }
 
