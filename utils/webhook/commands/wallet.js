@@ -6,7 +6,6 @@ const {
   WalletSchema,
 } = require("../../schema/wallet");
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
-const { WALLET_TYPES } = require("../../../constants/wallets");
 const { zodErrorParser, errorParser } = require("../../common/errorParser");
 const {
   sendInteractiveButtons,
@@ -134,9 +133,13 @@ async function handleGenerateWallet(user, message) {
     user.hasWallet = true;
     await user.save();
 
+    const text = !user.hasVerifiedKyc
+      ? "Congratulations!🎉\nWallet generation was successful!. Verify your kyc with /kyc"
+      : "Congratulations!🎉\nWallet generation was successful!";
+
     await sendInteractiveButtons({
       user,
-      text: "Congratulations!🎉\nWallet generation was successful!. Verify your kyc with /kyc",
+      text,
       buttons: !user.hasVerifiedKyc
         ? [
             {
