@@ -53,12 +53,14 @@ const options = [
 const optionsString = options
   .map(
     (option) =>
-      `✅ ${option.title} - Type *${option.id}* ${option?.nplMessage ?? ""}\n`,
+      `${option.title} - Type *${option.id}* ${option?.nplMessage ?? ""}\n`,
   )
   .join("\n");
 
 async function handleMenu(user) {
   const text = `Here's what you can do on Blok:\n\n${optionsString}`;
+  user.state = "/menu";
+  await user.save();
   await sendText({
     user,
     text,
