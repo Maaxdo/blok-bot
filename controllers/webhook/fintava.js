@@ -24,6 +24,7 @@ async function handleFintavaWebhook(req, res) {
     return res.status(200).send("EVENT_RECEIVED: Invalid event");
   } catch (err) {
     logger.error("Webhook Error", err);
+    return res.status(500).json({ error: "Webhook Error", details: err });
   }
 }
 
