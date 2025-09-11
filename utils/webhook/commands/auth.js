@@ -45,7 +45,6 @@ async function sendAuthPrompt(user) {
 }
 
 async function handleRegisterPrompt(user) {
-  
   const currentState = user.state;
 
   try {
@@ -99,12 +98,6 @@ async function handleRegisterPrompt(user) {
 }
 
 async function handleRegisterSendOtp(user, message) {
-  const hasExpired = getCommandExpiry(user, "/register");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/register", 20);
-    return;
-  }
   user.state = "/register:verify-otp";
   const validator = RegisterSchema.safeParse(message);
 
@@ -155,12 +148,6 @@ async function handleRegisterSendOtp(user, message) {
 }
 
 async function handleRegisterVerifyOtp(user, message) {
-  const hasExpired = getCommandExpiry(user, "/register");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/register", 20);
-    return;
-  }
   const otp = message.trim();
   const metadata = user.metadata;
 
@@ -237,12 +224,6 @@ async function handleCancel(user, message) {
 
 async function handleRegistrationConfirm(user, message) {
   try {
-    const hasExpired = getCommandExpiry(user, "/register");
-
-    if (hasExpired) {
-      await commandExpiryAction(user, "/register", 20);
-      return;
-    }
     const metadata = user.metadata;
     const validator = RegisterSchema.safeParse(message);
 
@@ -299,6 +280,52 @@ async function handleRegistrationConfirm(user, message) {
   }
 }
 
+async function handleResetPassword(user, message) {
+  user.state = "/reset-password:email";
+  await user.save();
+  await sendText({
+    user,
+    text: "Reset password\n\nPlease reply with your email address to reset your password",
+  });
+}
+
+async function handleResetPasswordEmail(user, message) {
+  const metadata = user.metadata;
+  const email = message.trim();
+  const validator = EmailSchema.safeParse({
+    email,
+  });
+
+  if (!validator.success) {
+    await sendText({
+      user,
+      text: "Invalid email provided. Please try again",
+    });
+    return;
+  }
+
+  try {
+    await BlokAxios({
+      method: "POST",
+      url: "/request-reset-code",
+      data: {
+        email,
+      },
+    });
+    await sendText({
+      user,
+      text: "A password reset code has been sent to your email. When you receive the code please reply with it",
+    });
+  } catch (e) {
+    await sendText({
+      user,
+      text: `An error occurred.\n${errorParser(e)}`,
+    });
+  }
+}
+
+async function handleResetPasswordCode(user, message) {}
+
 async function handleViewProfile(user, message) {
   const metadata = user.metadata;
   const profile = await BlokAxios({
@@ -338,13 +365,6 @@ async function handleLogin(user, message) {
 }
 
 async function handleLoginConfirm(user, message) {
-  const hasExpired = getCommandExpiry(user, "/login");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/login", 20);
-    return;
-  }
-
   try {
     const validator = LoginSchema.safeParse(message);
     if (!validator.success) {
@@ -433,12 +453,6 @@ async function handleLogout(user) {
 }
 
 async function handleLogoutConfirm(user, message) {
-  const hasExpired = getCommandExpiry(user, "/logout");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/logout", 20);
-    return;
-  }
   user.metadata = null;
   user.state = "/start";
   await user.save();

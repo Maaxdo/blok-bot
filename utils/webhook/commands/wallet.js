@@ -258,13 +258,6 @@ async function handleBuy(user, message) {
 }
 
 async function handleBuySelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
-
   const wallet = message.trim().toUpperCase();
   const validate = DepositSchema.safeParse({ wallet });
   if (!validate.success) {
@@ -302,11 +295,6 @@ async function handleBuySelect(user, message) {
 }
 
 async function handleBuyNetworksSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
   const metadata = user.metadata;
   const network = message.trim();
 
@@ -334,11 +322,6 @@ async function handleBuyNetworksSelect(user, message) {
 }
 
 async function handleDestinationAddressPromptYes(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
   await sendText({
     user,
     text: "Provide a destination address: (E.g Tr0X...)",
@@ -348,11 +331,6 @@ async function handleDestinationAddressPromptYes(user, message) {
 }
 
 async function handleDestinationAddressPromptNo(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
   const metadata = user.metadata;
   user.state = "/buy:options";
   await user.save();
@@ -374,11 +352,6 @@ async function handleDestinationAddressPromptNo(user, message) {
 }
 
 async function handleDestinationAddress(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
   const destinationAddress = message.trim();
 
   if (!destinationAddress || destinationAddress.length === 0) {
@@ -403,11 +376,6 @@ async function handleDestinationAddress(user, message) {
 }
 
 async function handleDestinationAddressConfirm(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
   const confirmDestinationAddress = message.trim();
   const metadata = user.metadata;
 
@@ -445,13 +413,6 @@ async function handleDestinationAddressConfirm(user, message) {
 }
 
 async function handleBuyOptions(user, message) {
-  const hasExpired = getCommandExpiry(user, "/buy");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/buy", 20);
-    return;
-  }
-
   const metadata = user.metadata;
   const validator = BuySchema.safeParse(message);
 
@@ -544,13 +505,6 @@ async function handleSell(user, message) {
 }
 
 async function handleSellWalletSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/sell");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/sell", 20);
-    return;
-  }
-
   const wallet = message.trim().toUpperCase();
   const validate = DepositSchema.safeParse({ wallet });
   if (!validate.success) {
@@ -587,11 +541,6 @@ async function handleSellWalletSelect(user, message) {
 }
 
 async function handleSellNetworksSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/sell");
-  if (hasExpired) {
-    await commandExpiryAction(user, "/sell", 20);
-    return;
-  }
   const metadata = user.metadata;
   const network = message.trim();
 
@@ -635,13 +584,6 @@ async function handleSellNetworksSelect(user, message) {
 }
 
 async function handleSellAccountSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/sell");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/sell", 20);
-    return;
-  }
-
   const metadata = user.metadata;
 
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -705,13 +647,6 @@ async function handleSellAccountSelect(user, message) {
 }
 
 async function handleSellOptions(user, message) {
-  const hasExpired = getCommandExpiry(user, "/sell");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/sell", 20);
-    return;
-  }
-
   const validator = BuySchema.safeParse(message);
 
   if (!validator.success) {
@@ -794,13 +729,6 @@ async function handleDeposit(user, message) {
 }
 
 async function handleDepositWalletSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/deposit");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/deposit", 20);
-    return;
-  }
-
   const wallet = message.trim();
   const validator = WalletSchema.safeParse({ wallet });
 
@@ -855,13 +783,6 @@ async function handleDepositWalletSelect(user, message) {
 }
 
 async function handleDepositNetworkSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/deposit");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/deposit", 20);
-    return;
-  }
-
   const network = message.trim();
   const metadata = user.metadata;
 
@@ -899,12 +820,6 @@ async function handleAddress(user, message) {
 }
 
 async function handleAddressWalletSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/address");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/address", 20);
-    return;
-  }
   const wallet = message.trim();
   const validator = WalletSchema.safeParse({ wallet });
 
@@ -942,12 +857,6 @@ async function handleAddressWalletSelect(user, message) {
 }
 
 async function handleAddressNetworkSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/address");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/address", 20);
-    return;
-  }
   const network = message.trim();
   const userWallets = await BlokAxios({
     url: "/wallet",

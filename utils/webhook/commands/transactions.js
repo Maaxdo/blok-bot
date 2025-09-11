@@ -51,13 +51,6 @@ function getTransactionsText(transactions) {
 }
 
 async function handleTransactionsDate(user, message) {
-  const hasExpired = getCommandExpiry(user, "/transactions");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/transactions", 20);
-    return;
-  }
-
   const validation = DateSchema.safeParse(message);
   const metadata = user.metadata;
 
@@ -130,13 +123,6 @@ async function handleTransactionsDate(user, message) {
 }
 
 async function handleTransactionsNext(user, message) {
-  const hasExpired = getCommandExpiry(user, "/transactions");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/transactions", 20);
-    return;
-  }
-
   const metadata = user.metadata;
   const page = metadata.page + 1;
 
@@ -183,12 +169,6 @@ async function handleTransactionsNext(user, message) {
 }
 
 async function handleTransactionsPrev(user, message) {
-  const hasExpired = getCommandExpiry(user, "/transactions");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/transactions", 20);
-    return;
-  }
   const metadata = user.metadata;
   const page = metadata.page - 1;
 

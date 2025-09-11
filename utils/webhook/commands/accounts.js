@@ -59,16 +59,9 @@ async function handleAccounts(user, message) {
       ],
     });
   } catch (e) {
-    await InfoBipAxios({
-      url: "/whatsapp/1/message/text",
-      method: "POST",
-      data: {
-        from: infobip.phone,
-        to: user.phone,
-        content: {
-          text: `⚠️An error occurred\n${errorParser(e)}`,
-        },
-      },
+    await sendText({
+      user,
+      text: `⚠️An error occurred\n${errorParser(e)}`,
     });
   }
 }
@@ -92,13 +85,6 @@ async function handleAccountAdd(user, message) {
 }
 
 async function handleBankOptions(user, message) {
-  const hasExpired = getCommandExpiry(user, "/accounts:add");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/accounts:add", 20);
-    return;
-  }
-
   const metadata = user.metadata;
   const validator = BankSearchSchema.safeParse({
     bank: message.trim(),
@@ -146,12 +132,6 @@ async function handleBankOptions(user, message) {
 }
 
 async function handleBankSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/accounts:add");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/accounts:add", 20);
-    return;
-  }
   const metadata = user.metadata;
   const banks = metadata.banks;
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -209,13 +189,6 @@ async function handleBankSelect(user, message) {
 }
 
 async function handleAccountAddNumber(user, message) {
-  const hasExpired = getCommandExpiry(user, "/accounts:add");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/accounts:add", 20);
-    return;
-  }
-
   const metadata = user.metadata;
   const accountNumber = message.trim();
 
@@ -264,13 +237,6 @@ async function handleAccountAddNumber(user, message) {
 }
 
 async function handleAccountAddConfirm(user, message) {
-  const hasExpired = getCommandExpiry(user, "/accounts:add");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/accounts:add", 20);
-    return;
-  }
-
   const metadata = user.metadata;
 
   try {
@@ -376,13 +342,6 @@ async function handleAccountDelete(user, message) {
 }
 
 async function handleAccountDeleteSelect(user, message) {
-  const hasExpired = getCommandExpiry(user, "/accounts:delete");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/accounts:delete", 20);
-    return;
-  }
-
   const metadata = user.metadata;
 
   const selectedIndex = parseInt(message.trim()) - 1;
@@ -456,12 +415,6 @@ async function handleAccountDeleteSelect(user, message) {
 }
 
 async function handleAccountDeleteConfirm(user, message) {
-  const hasExpired = getCommandExpiry(user, "/accounts:delete");
-
-  if (hasExpired) {
-    await commandExpiryAction(user, "/accounts:delete", 20);
-    return;
-  }
   const metadata = user.metadata;
   const { selectedAccount } = metadata;
   try {
