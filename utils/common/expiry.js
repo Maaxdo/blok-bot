@@ -38,7 +38,7 @@ async function commandExpiryAction(user, commandCategory, durationInMins = 20) {
   await user.save();
   await sendInteractiveButtons({
     user,
-    text: `❌ Oops! You have been inactive for ${durationInMins} minutes. Please type /menu to view the menu commands`,
+    text: `⚠️ Oops! You have been inactive for ${durationInMins} minutes. Please type /menu to view the menu commands`,
     buttons: [
       {
         type: "REPLY",
