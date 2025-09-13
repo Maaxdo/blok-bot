@@ -24,13 +24,26 @@ cron.schedule("* * * * *", async () => {
       await sendInteractiveButtons({
         user,
         text: `⚠️ Oops! You have been inactive for some time. Please type /menu to view the menu commands`,
-        buttons: [
-          {
-            type: "REPLY",
-            id: "/menu",
-            title: "Back to menu",
-          },
-        ],
+        buttons: user.rememberedState
+          ? [
+              {
+                type: "REPLY",
+                id: "/menu",
+                title: "Back to menu",
+              },
+              {
+                type: "REPLY",
+                id: user.rememberedState,
+                title: "Resume",
+              },
+            ]
+          : [
+              {
+                type: "REPLY",
+                id: "/menu",
+                title: "Back to menu",
+              },
+            ],
       });
     }
   }

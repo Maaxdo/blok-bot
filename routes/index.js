@@ -5,6 +5,7 @@ const { webhookRouter } = require("./webhook");
 const appRouter = express();
 
 appRouter.use(express.json());
+
 appRouter.use(
   express.urlencoded({
     extended: false,
