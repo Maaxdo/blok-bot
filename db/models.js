@@ -15,6 +15,10 @@ const UserSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
+    rememberedState: {
+      type: String,
+      default: null,
+    },
     expiryCommand: {
       type: String,
       default: null,

@@ -15,8 +15,6 @@ const {
 const { cache } = require("../../common/cache");
 const {
   refreshCommandExpiry,
-  getCommandExpiry,
-  commandExpiryAction,
   removeCommandExpiry,
 } = require("../../common/expiry");
 const { logger } = require("../../common/logger");
@@ -157,7 +155,7 @@ async function handleGenerateWallet(user, message) {
           ],
     });
   } catch (e) {
-    console.log(JSON.stringify(e));
+    logger.error(`An error occured: ${errorParser(e)}`, e);
 
     await sendText({ user, text: `*An error occurred* ⚠️\n${errorParser(e)}` });
   }
@@ -252,6 +250,7 @@ async function handleWithdrawOptions(user, message) {
 
 async function handleBuy(user, message) {
   user.state = "/buy:select";
+  user.rememberedState = "/buy:select";
   await user.save();
   await sendWalletOptions(user);
   await refreshCommandExpiry(user, "/buy", 20);
@@ -271,6 +270,7 @@ async function handleBuySelect(user, message) {
     wallet,
   };
   user.state = "/buy:networks:select";
+  user.rememberedState = "/buy:networks:select";
   await user.save();
 
   const cryptos = await cache("cryptos", async () => {
@@ -333,6 +333,7 @@ async function handleDestinationAddressPromptYes(user, message) {
 async function handleDestinationAddressPromptNo(user, message) {
   const metadata = user.metadata;
   user.state = "/buy:options";
+
   await user.save();
   await sendFlow({
     user,
@@ -500,6 +501,8 @@ async function handleBuyConfirmPayment(user, message) {
 async function handleSell(user, message) {
   await sendWalletOptions(user);
   user.state = "/sell:wallet:select";
+  user.rememberedState = "/sell:wallet:select";
+
   await user.save();
   await refreshCommandExpiry(user, "/sell", 20);
 }
