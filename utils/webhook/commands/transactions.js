@@ -9,8 +9,6 @@ const { paginateExternally } = require("../../common/paginate");
 const { getPaginationButtons } = require("../../common/pagination");
 const {
   refreshCommandExpiry,
-  getCommandExpiry,
-  commandExpiryAction,
   removeCommandExpiry,
 } = require("../../common/expiry");
 const { logger } = require("../../common/logger");
@@ -34,6 +32,8 @@ async function handleTransactions(user, message) {
     text: "Select date range to view your transactions",
   });
   user.state = "/transactions:dates";
+  user.rememberedState = "/transactions";
+
   await user.save();
   await refreshCommandExpiry(user, "/transactions", 20);
 }
@@ -104,7 +104,6 @@ async function handleTransactionsDate(user, message) {
       buttons,
     });
   } catch (e) {
-    console.log(e.response.data.requestError.serviceException.validationErrors);
     logger.error(errorParser(e), e);
     user.state = "/transactions";
     await user.save();

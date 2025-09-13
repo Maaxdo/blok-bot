@@ -250,7 +250,7 @@ async function handleWithdrawOptions(user, message) {
 
 async function handleBuy(user, message) {
   user.state = "/buy:select";
-  user.rememberedState = "/buy:select";
+  user.rememberedState = "/buy";
   await user.save();
   await sendWalletOptions(user);
   await refreshCommandExpiry(user, "/buy", 20);
@@ -270,7 +270,6 @@ async function handleBuySelect(user, message) {
     wallet,
   };
   user.state = "/buy:networks:select";
-  user.rememberedState = "/buy:networks:select";
   await user.save();
 
   const cryptos = await cache("cryptos", async () => {
@@ -501,7 +500,7 @@ async function handleBuyConfirmPayment(user, message) {
 async function handleSell(user, message) {
   await sendWalletOptions(user);
   user.state = "/sell:wallet:select";
-  user.rememberedState = "/sell:wallet:select";
+  user.rememberedState = "/sell";
 
   await user.save();
   await refreshCommandExpiry(user, "/sell", 20);

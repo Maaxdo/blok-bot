@@ -10,8 +10,6 @@ const {
 const { BankSearchSchema } = require("../../schema/accounts");
 const {
   refreshCommandExpiry,
-  commandExpiryAction,
-  getCommandExpiry,
   removeCommandExpiry,
 } = require("../../common/expiry");
 
@@ -80,6 +78,7 @@ async function handleAccountAdd(user, message) {
   });
 
   user.state = "/accounts:banks";
+  user.rememberedState = "/accounts:add";
   await user.save();
   await refreshCommandExpiry(user, "/accounts:add", 20);
 }
@@ -175,16 +174,9 @@ async function handleBankSelect(user, message) {
   user.state = "/accounts:add:number";
   await user.save();
 
-  await InfoBipAxios({
-    url: "/whatsapp/1/message/text",
-    method: "POST",
-    data: {
-      from: infobip.phone,
-      to: user.phone,
-      content: {
-        text: `Enter the account number for your *${selectedBank.name}* account`,
-      },
-    },
+  await sendText({
+    user,
+    text: `Enter the account number for your *${selectedBank.name}* account`,
   });
 }
 
