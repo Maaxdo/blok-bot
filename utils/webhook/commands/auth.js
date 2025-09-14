@@ -14,8 +14,6 @@ const {
 } = require("../../../helpers/bot/infobip");
 const {
   refreshCommandExpiry,
-  getCommandExpiry,
-  commandExpiryAction,
   removeCommandExpiry,
 } = require("../../common/expiry");
 const { logger } = require("../../common/logger");
@@ -288,6 +286,8 @@ async function handleRegistrationConfirm(user, message) {
 async function handleResetPassword(user, message) {
   user.state = "/reset-password:email";
   await user.save();
+  user.rememberedState = "/reset-password";
+  await refreshCommandExpiry(user, "/reset-password", 20);
   await sendText({
     user,
     text: "🔑 Reset Password\nPlease reply with your email address to start the password reset process.\n\n📩 We’ll send you a secure code to create a new password and regain access to your account.",
@@ -389,6 +389,9 @@ async function handleResetPasswordCode(user, message) {
         },
       ],
     });
+    await removeCommandExpiry(user);
+    user.state = "/start";
+    await user.save();
   } catch (e) {
     await sendText({
       user,
