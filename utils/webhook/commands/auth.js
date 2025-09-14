@@ -1,5 +1,10 @@
 const { BlokAxios } = require("../../../helpers/webhook/blokbot");
-const { LoginSchema, RegisterSchema } = require("../../schema/auth");
+const {
+  LoginSchema,
+  RegisterSchema,
+  ResetPasswordSchema,
+  EmailSchema,
+} = require("../../schema/auth");
 const { handleMenu } = require("./menu");
 const { errorParser, zodErrorParser } = require("../../common/errorParser");
 const {
@@ -305,6 +310,12 @@ async function handleResetPasswordEmail(user, message) {
   }
 
   try {
+    user.state = "/reset-password:code";
+    user.metadata = {
+      ...metadata,
+      email,
+    };
+    await user.save();
     await BlokAxios({
       method: "POST",
       url: "/request-reset-code",
@@ -312,9 +323,20 @@ async function handleResetPasswordEmail(user, message) {
         email,
       },
     });
-    await sendText({
+    await sendFlow({
       user,
-      text: "A password reset code has been sent to your email. When you receive the code please reply with it",
+      text: "A password reset code has been sent to your email. When you receive the code please fill this form to reset your password",
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "798738512600008",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "RESET_SCREEN",
+        },
+      },
     });
   } catch (e) {
     await sendText({
@@ -324,7 +346,56 @@ async function handleResetPasswordEmail(user, message) {
   }
 }
 
-async function handleResetPasswordCode(user, message) {}
+async function handleResetPasswordCode(user, message) {
+  const validator = ResetPasswordSchema.safeParse(message);
+
+  if (!validator.success) {
+    await sendFlow({
+      user,
+      text: `⚠️ Invalid details provided.\n${zodErrorParser(validator)}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "798738512600008",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "RESET_SCREEN",
+        },
+      },
+    });
+    return;
+  }
+
+  try {
+    await BlokAxios({
+      url: "/reset-password",
+      method: "POST",
+      data: {
+        email: user.metadata.email,
+        reset_code: message.resetCode,
+        new_password: message.password,
+      },
+    });
+    await sendInteractiveButtons({
+      user,
+      text: "Password reset successful! Please login with your new password",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/login",
+          title: "Login",
+        },
+      ],
+    });
+  } catch (e) {
+    await sendText({
+      user,
+      text: `An error occurred.\n${errorParser(e)}`,
+    });
+  }
+}
 
 async function handleViewProfile(user, message) {
   const metadata = user.metadata;
@@ -360,6 +431,17 @@ async function handleLogin(user, message) {
         screen: "SIGNIN_SCREEN",
       },
     },
+  });
+  await sendInteractiveButtons({
+    user,
+    text: "If you have forgotten your password, please click the button below to reset it",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/reset-password",
+        title: "Reset Password",
+      },
+    ],
   });
   await refreshCommandExpiry(user, "/login", 20);
 }
@@ -479,4 +561,7 @@ module.exports = {
   handleLogout,
   handleLogoutConfirm,
   handleLogoutCancel,
+  handleResetPassword,
+  handleResetPasswordEmail,
+  handleResetPasswordCode,
 };

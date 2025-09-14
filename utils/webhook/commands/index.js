@@ -11,6 +11,9 @@ const {
   handleLogout,
   handleLogoutConfirm,
   handleLogoutCancel,
+  handleResetPassword,
+  handleResetPasswordCode,
+  handleResetPasswordEmail,
 } = require("./auth");
 
 const { handleMenu } = require("./menu");
@@ -64,6 +67,22 @@ const commands = [
   {
     command: "/start",
     function: sendAuthPrompt,
+  },
+  {
+    command: "/reset-password",
+    function: handleResetPassword,
+  },
+  {
+    command: "/reset-password:email",
+    function: handleResetPasswordEmail,
+  },
+  {
+    command: "/reset-password:code",
+    function: handleResetPasswordCode,
+  },
+  {
+    command: "/register",
+    function: handleRegisterPrompt,
   },
   {
     command: "/register",

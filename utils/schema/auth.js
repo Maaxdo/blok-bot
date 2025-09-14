@@ -38,8 +38,20 @@ const RegisterSchema = z
     path: ["confirmPassword"],
   });
 
+const ResetPasswordSchema = z
+  .object({
+    password: z.string().min(1, "Password is required"),
+    confirmPassword: z.string(),
+    resetCode: z.string().min(1, "Reset code is required"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 module.exports = {
   EmailSchema,
   LoginSchema,
   RegisterSchema,
+  ResetPasswordSchema,
 };
