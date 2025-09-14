@@ -26,7 +26,7 @@ async function sendAuthPrompt(user) {
   if (!metadata) {
     await sendInteractiveButtons({
       user,
-      text: "Welcome to Blok AI! Please select an option to continue.",
+      text: "👋 Welcome to Blok AI\nYour fast and secure way to manage and transact crypto.\n",
       buttons: [
         {
           type: "REPLY",
@@ -290,7 +290,7 @@ async function handleResetPassword(user, message) {
   await user.save();
   await sendText({
     user,
-    text: "Reset password\n\nPlease reply with your email address to reset your password",
+    text: "🔑 Reset Password\nPlease reply with your email address to start the password reset process.\n\n📩 We’ll send you a secure code to create a new password and regain access to your account.",
   });
 }
 
@@ -325,7 +325,7 @@ async function handleResetPasswordEmail(user, message) {
     });
     await sendFlow({
       user,
-      text: "A password reset code has been sent to your email. When you receive the code please fill this form to reset your password",
+      text: "📩 Password Reset Code Sent\nWe’ve sent a reset code to your registered email address.\n\n✍ When you receive the code, please enter it in the form below to verify and reset your password.",
       action: {
         mode: "PUBLISHED",
         flowMessageVersion: 3,
@@ -380,7 +380,7 @@ async function handleResetPasswordCode(user, message) {
     });
     await sendInteractiveButtons({
       user,
-      text: "Password reset successful! Please login with your new password",
+      text: "✅ Password Reset Successful\nYour password has been updated securely.\n\n🔐 Please log in with your new password to continue",
       buttons: [
         {
           type: "REPLY",
@@ -419,7 +419,7 @@ async function handleLogin(user, message) {
   await user.save();
   await sendFlow({
     user,
-    text: "Sign In\nWelcome to Blok AI. Your fast and secure way to transact crypto.\nLet's get started.",
+    text: "🔐 Sign in to continue\nAccess your assets, track transactions, and stay updated with live rates",
     action: {
       mode: "PUBLISHED",
       flowMessageVersion: 3,
@@ -434,7 +434,7 @@ async function handleLogin(user, message) {
   });
   await sendInteractiveButtons({
     user,
-    text: "If you have forgotten your password, please click the button below to reset it",
+    text: "🔑 Forgot your password?\nNo worries, you can reset it securely.\n\n👇 Click the button below to set a new password and regain access to your account.\n",
     buttons: [
       {
         type: "REPLY",
@@ -485,7 +485,7 @@ async function handleLoginConfirm(user, message) {
     await user.save();
     await sendInteractiveButtons({
       user,
-      text: "Login successful!. View the available options",
+      text: "✅ Login Successful\nWelcome back! You’re now signed in to Blok AI.\n\n👉 To continue, type /menu or click the button below to view all available options.",
       buttons: [
         {
           type: "REPLY",
