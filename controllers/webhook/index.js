@@ -43,7 +43,9 @@ async function handlePostWebhook(req, res) {
     const message = extractMessage(req.body);
 
     let command = commands.find(
-      (cmd) => cmd.command === message || cmd.command === `/${message}`,
+      (cmd) =>
+        cmd.command === message ||
+        cmd.command === `/${message.trim().toLowerCase()}`,
     );
 
     if (!command && typeof message === "string") {

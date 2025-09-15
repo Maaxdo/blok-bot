@@ -63,6 +63,11 @@ const {
 const { handleRates } = require("./rates");
 const { handleSupport } = require("./support");
 
+/**
+ *
+ * @type {[{command: string, function: ((function(*): Promise<void>)|*)},{command: string, function: ((function(*, *): Promise<void>)|*)},{command: string, function: ((function(*, *): Promise<void>)|*)},{command: string, function: ((function(*, *): Promise<void>)|*)},{command: string, function: ((function(*): Promise<void>)|*)},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}
+ */
+// All commands should be in lower case
 const commands = [
   {
     command: "/start",

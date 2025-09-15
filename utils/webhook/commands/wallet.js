@@ -476,9 +476,20 @@ async function handleBuyOptions(user, message) {
     await removeCommandExpiry(user);
   } catch (e) {
     logger.error("An error occured", e);
-    await sendText({
-      text: `*An error occurred* ⚠️\n${errorParser(e)}`,
+    await sendFlow({
       user,
+      text: `*An error occurred* ⚠️\n${errorParser(e)}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "24035309786120142",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "BUY_SCREEN",
+        },
+      },
     });
   }
 }

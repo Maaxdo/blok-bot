@@ -91,6 +91,11 @@ async function handleTransactionsDate(user, message) {
             type: "REPLY",
             title: "Try again",
           },
+          {
+            id: "/menu",
+            type: "REPLY",
+            title: "Back to menu",
+          },
         ],
       });
       return;
