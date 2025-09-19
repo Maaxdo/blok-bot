@@ -731,6 +731,229 @@ async function handleSellOptions(user, message) {
   }
 }
 
+async function handleQuote(user, message) {
+  await sendWalletOptions(user);
+  user.state = "/quote:wallet:select";
+  user.rememberedState = "/sell";
+
+  await user.save();
+  await refreshCommandExpiry(user, "/quote", 20);
+}
+
+async function handleQuoteWalletSelect(user, message) {
+  const wallet = message.trim().toUpperCase();
+  const validate = DepositSchema.safeParse({ wallet });
+  if (!validate.success) {
+    await sendWalletOptions(user);
+    return;
+  }
+  const metadata = user.metadata;
+  user.metadata = {
+    ...metadata,
+    wallet,
+  };
+  user.state = "/quote:networks:select";
+  await user.save();
+
+  const cryptos = await cache("cryptos", async () => {
+    const response = await BlokAxios({
+      url: "/crypto/available",
+    });
+    return response.data;
+  });
+
+  const networks =
+    cryptos.find((item) => item.symbol === wallet)?.networks || [];
+
+  await sendInteractiveButtons({
+    user,
+    text: `Select the network you would like to use for ${wallet}`,
+    buttons: networks.map((network) => ({
+      type: "REPLY",
+      id: network,
+      title: network,
+    })),
+  });
+}
+
+async function handleQuoteNetworksSelect(user, message) {
+  const metadata = user.metadata;
+  const network = message.trim();
+
+  user.metadata = {
+    ...metadata,
+    network,
+  };
+  user.state = "/quote:account:select";
+  await user.save();
+
+  const accounts = await BlokAxios({
+    url: `/bank/${metadata.userId}`,
+  }).then((res) => res.data);
+
+  if (!accounts.length) {
+    await sendInteractiveButtons({
+      text: "You do not have any bank accounts connected to your account. Please connect a bank account to continue",
+      user,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:add",
+          title: "Connect Bank Account",
+        },
+      ],
+    });
+    return;
+  }
+
+  const accountsList = accounts
+    .map(
+      (account, index) =>
+        `${index + 1} - ${account.bank_name} *${account.account_number}*`,
+    )
+    .join("\n");
+  const text = `Choose from your available accounts \nKindly type “1” to select the first account:\n\n${accountsList}`;
+  await sendText({
+    user,
+    text,
+  });
+}
+
+async function handleQuoteAccountSelect(user, message) {
+  const metadata = user.metadata;
+
+  const selectedIndex = parseInt(message.trim()) - 1;
+
+  if (isNaN(selectedIndex)) {
+    await sendInteractiveButtons({
+      user,
+      text: "Invalid account selected. Please try again.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/sell",
+          title: "Sell",
+        },
+      ],
+    });
+    return;
+  }
+  const res = await BlokAxios({
+    url: `/bank/${metadata.userId}`,
+  }).then((res) => res.data);
+
+  const selectedAccount = res[selectedIndex];
+
+  if (!selectedAccount) {
+    await sendInteractiveButtons({
+      user,
+      text: "Invalid account selected. Please try again.",
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/sell",
+          title: "Sell",
+        },
+      ],
+    });
+    return;
+  }
+
+  user.state = "/quote:options";
+  user.metadata = {
+    ...metadata,
+    selectedAccount,
+  };
+  await user.save();
+  await sendFlow({
+    user,
+    text: "Fill in the form below to get a quote for your transaction",
+    action: {
+      mode: "PUBLISHED",
+      flowMessageVersion: 3,
+      flowToken: "Flow token",
+      flowId: "1471312790690765",
+      callToActionButton: "Continue",
+      flowAction: "NAVIGATE",
+      flowActionPayload: {
+        screen: "SELL_SCREEN",
+      },
+    },
+  });
+}
+
+async function handleQuoteOptions(user, message) {
+  const validator = BuySchema.safeParse(message);
+
+  if (!validator.success) {
+    const error = zodErrorParser(validator);
+    await sendFlow({
+      user,
+      text: `The details you provided are invalid.\n${error}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "1471312790690765",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SELL_SCREEN",
+        },
+      },
+    });
+    return;
+  }
+  const metadata = user.metadata;
+
+  try {
+    const response = await BlokAxios({
+      url: "/crypto/sell/preview",
+      method: "POST",
+      data: {
+        user_id: metadata.userId,
+        wallet_type: metadata.wallet,
+        bank_account_id: metadata.selectedAccount.id,
+        currency: metadata.network,
+        network: metadata.network,
+        amount: message.amount,
+        pin: message.pin,
+      },
+    }).then((res) => res.data);
+    user.state = "/menu";
+    await user.save();
+    await sendInteractiveButtons({
+      user,
+      text: `ℹ️ ${response.preview_message}\n\nAmount: ${response.currency} ${response.amount_crypto.toLocaleString()}\nAmount (USD): $ ${response.amount_usd.toLocaleString()}\nNaira amount: NGN ${response.naira_amount.toLocaleString()}\nGas fee: $ ${response.gas_fee_usd}`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+    });
+    await removeCommandExpiry(user);
+  } catch (e) {
+    await sendFlow({
+      user,
+      text: `⚠️ An error occurred.\n${errorParser(e)}`,
+      action: {
+        mode: "PUBLISHED",
+        flowMessageVersion: 3,
+        flowToken: "Flow token",
+        flowId: "1471312790690765",
+        callToActionButton: "Continue",
+        flowAction: "NAVIGATE",
+        flowActionPayload: {
+          screen: "SELL_SCREEN",
+        },
+      },
+    });
+    logger.error("Sell error", e);
+  }
+}
+
 async function handleDeposit(user, message) {
   user.state = "/deposit:wallet";
   await user.save();
@@ -925,4 +1148,9 @@ module.exports = {
   handleAddress,
   handleAddressNetworkSelect,
   handleAddressWalletSelect,
+  handleQuote,
+  handleQuoteOptions,
+  handleQuoteNetworksSelect,
+  handleQuoteAccountSelect,
+  handleQuoteWalletSelect,
 };

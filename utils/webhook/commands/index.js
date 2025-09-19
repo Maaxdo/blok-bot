@@ -39,6 +39,11 @@ const {
   handleAddress,
   handleAddressWalletSelect,
   handleAddressNetworkSelect,
+  handleQuote,
+  handleQuoteWalletSelect,
+  handleQuoteAccountSelect,
+  handleQuoteOptions,
+  handleQuoteNetworksSelect,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN } = require("./kyc");
 const {
@@ -262,6 +267,29 @@ const commands = [
     command: "/sell:networks:select",
     function: auth(handleSellNetworksSelect, true, true),
   },
+
+  {
+    command: "/quote",
+    function: auth(handleQuote, true, true),
+    nplMessage: "I want to sell crypto",
+  },
+  {
+    command: "/quote:wallet:select",
+    function: auth(handleQuoteWalletSelect, true, true),
+  },
+  {
+    command: "/quote:account:select",
+    function: auth(handleQuoteAccountSelect, true, true),
+  },
+  {
+    command: "/quote:options",
+    function: auth(handleQuoteOptions, true, true),
+  },
+  {
+    command: "/quote:networks:select",
+    function: auth(handleQuoteNetworksSelect, true, true),
+  },
+
   {
     command: "/accounts",
     function: auth(handleAccounts, true, true),
