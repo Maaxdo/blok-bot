@@ -101,7 +101,6 @@ async function handleRegisterPrompt(user) {
 }
 
 async function handleRegisterSendOtp(user, message) {
-  user.state = "/register:verify-otp";
   const validator = RegisterSchema.safeParse(message);
 
   if (!validator.success) {
@@ -123,7 +122,6 @@ async function handleRegisterSendOtp(user, message) {
     });
     return;
   }
-  user.metadata = message;
 
   try {
     await BlokAxios({
@@ -136,11 +134,13 @@ async function handleRegisterSendOtp(user, message) {
         phone: user.phone,
       },
     });
+    user.state = "/register:verify-otp";
+    user.metadata = message;
+    await user.save();
     await sendText({
       user,
       text: "An OTP has been sent to your email. Please enter it below.",
     });
-    await user.save();
   } catch (e) {
     await sendText({
       user,

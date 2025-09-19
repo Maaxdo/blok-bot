@@ -42,11 +42,14 @@ async function handlePostWebhook(req, res) {
     const user = req.user;
     const message = extractMessage(req.body);
 
-    let command = commands.find(
-      (cmd) =>
-        cmd.command === message ||
-        cmd.command === `/${message.trim().toLowerCase()}`,
-    );
+    let command =
+      typeof message === "string"
+        ? commands.find(
+            (cmd) =>
+              cmd.command === message ||
+              cmd.command === `/${message.trim().toLowerCase()}`,
+          )
+        : null;
 
     if (!command && typeof message === "string") {
       command = commands.find(
