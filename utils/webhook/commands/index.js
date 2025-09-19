@@ -271,7 +271,7 @@ const commands = [
   {
     command: "/quote",
     function: auth(handleQuote, true, true),
-    nplMessage: "I want to sell crypto",
+    nplMessage: "I want to get a quote",
   },
   {
     command: "/quote:wallet:select",

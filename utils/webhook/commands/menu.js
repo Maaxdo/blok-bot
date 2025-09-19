@@ -26,7 +26,7 @@ const options = [
     nplMessage: 'or "I want to sell crypto"',
   },
   {
-    title: "💵 Sell Crypto",
+    title: "💵 Get Sell quote",
     id: "/quote",
     nplMessage: 'or "I want to get quote"',
   },
