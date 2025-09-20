@@ -7,6 +7,8 @@ const KycSchema = z.object(
     }),
   },
   {
+    required_error: "Invalid BVN provided",
+    invalid_type_error: "Invalid BVN provided",
     message: "Invalid BVN provided",
   },
 );

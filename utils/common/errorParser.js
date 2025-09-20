@@ -4,8 +4,11 @@ const errorParser = (error) => {
   const DEFAULT_ERROR = "An error occurred";
 
   if (error instanceof AxiosError) {
-    if ("detail" in error.response?.data) {
-      return error.response?.data?.detail || DEFAULT_ERROR;
+    if (
+      "detail" in error.response?.data &&
+      typeof error.response.data.detail === "string"
+    ) {
+      return error.response?.data?.detail;
     }
 
     if (
