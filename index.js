@@ -23,7 +23,7 @@ cron.schedule("* * * * *", async () => {
       await removeCommandExpiry(user);
       await sendInteractiveButtons({
         user,
-        text: `⚠️ Oops! You have been inactive for some time. Please type /menu to view the menu commands`,
+        text: `👀 Oops! You have been inactive for some time. Please type /menu to view the menu commands`,
         buttons: user.rememberedState
           ? [
               {

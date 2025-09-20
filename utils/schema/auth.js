@@ -39,11 +39,17 @@ const RegisterSchema = z
   });
 
 const ResetPasswordSchema = z
-  .object({
-    password: z.string().min(1, "Password is required"),
-    confirmPassword: z.string(),
-    resetCode: z.string().min(1, "Reset code is required"),
-  })
+  .object(
+    {
+      password: z.string().min(1, "Password is required"),
+      confirmPassword: z.string(),
+      resetCode: z.string().min(1, "Reset code is required"),
+    },
+    {
+      invalid_type_error: "Invalid information provided",
+      required_error: "Invalid information provided",
+    },
+  )
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],

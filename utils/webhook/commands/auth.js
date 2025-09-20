@@ -408,8 +408,9 @@ async function handleViewProfile(user, message) {
       user_id: metadata.userId,
     },
   }).then((res) => res.data);
+  console.log(profile);
 
-  const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status}`;
+  const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status.replaceAll("_", " ").toUpperCase()}`;
 
   await sendText({
     user,
