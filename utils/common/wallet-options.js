@@ -2,7 +2,9 @@ const { chunkify } = require("./chunkify");
 const { sendInteractiveButtons } = require("../../helpers/bot/infobip");
 const { cache } = require("./cache");
 const { BlokAxios } = require("../../helpers/webhook/blokbot");
-const EXPIRY_TIME = 1 * 60 * 60 * 1000;
+
+// 10 minutes
+const EXPIRY_TIME = 10 * 60 * 1000;
 
 const getTokens = async () => {
   return cache(
