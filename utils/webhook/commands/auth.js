@@ -409,7 +409,6 @@ async function handleViewProfile(user, message) {
         user_id: metadata.userId,
       },
     }).then((res) => res.data);
-    console.log(profile);
 
     const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status.replaceAll("_", " ").toUpperCase()}`;
 
@@ -418,7 +417,7 @@ async function handleViewProfile(user, message) {
       text: body,
     });
   } catch (e) {
-    sendText({
+    await sendText({
       user,
       text: `An error occurred.\n${errorParser(e)}`,
     });
