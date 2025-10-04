@@ -401,21 +401,28 @@ async function handleResetPasswordCode(user, message) {
 }
 
 async function handleViewProfile(user, message) {
-  const metadata = user.metadata;
-  const profile = await BlokAxios({
-    url: "/profile",
-    params: {
-      user_id: metadata.userId,
-    },
-  }).then((res) => res.data);
-  console.log(profile);
+  try {
+    const metadata = user.metadata;
+    const profile = await BlokAxios({
+      url: "/profile",
+      params: {
+        user_id: metadata.userId,
+      },
+    }).then((res) => res.data);
+    console.log(profile);
 
-  const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status.replaceAll("_", " ").toUpperCase()}`;
+    const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status.replaceAll("_", " ").toUpperCase()}`;
 
-  await sendText({
-    user,
-    text: body,
-  });
+    await sendText({
+      user,
+      text: body,
+    });
+  } catch (e) {
+    sendText({
+      user,
+      text: `An error occurred.\n${errorParser(e)}`,
+    });
+  }
 }
 
 async function handleLogin(user, message) {
