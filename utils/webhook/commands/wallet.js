@@ -59,6 +59,7 @@ async function handleInitiateWalletGeneration(user, message) {
     },
   });
   user.state = "/wallet:generate";
+  await refreshCommandExpiry(user, "/wallet", 20);
   await user.save();
 }
 
@@ -154,6 +155,7 @@ async function handleGenerateWallet(user, message) {
             },
           ],
     });
+    await removeCommandExpiry(user);
   } catch (e) {
     logger.error(`An error occured: ${errorParser(e)}`, e);
 
