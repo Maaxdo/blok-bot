@@ -417,6 +417,9 @@ async function handleViewProfile(user, message) {
       text: body,
     });
   } catch (e) {
+    console.log(user.phone, metadata.userId);
+    console.log(errorParser(e));
+
     await sendText({
       user,
       text: `An error occurred.\n${errorParser(e)}`,

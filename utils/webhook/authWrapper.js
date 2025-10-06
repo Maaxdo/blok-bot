@@ -20,6 +20,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
     }
 
     const metadata = user.metadata;
+
     const profile = await BlokAxios({
       url: "/profile",
       params: {
