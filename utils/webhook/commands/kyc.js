@@ -102,7 +102,7 @@ async function handleRefreshKyc(user, message) {
   await user.save();
   await sendInteractiveButtons({
     user,
-    text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
+    text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC",
     buttons: [
       {
         type: "REPLY",
