@@ -77,50 +77,57 @@ async function handleAccountAdd(user, message) {
 }
 
 async function handleBankOptions(user, message) {
-  const metadata = user.metadata;
-  const validator = BankSearchSchema.safeParse({
-    bank: message.trim(),
-  });
+  try {
+    const metadata = user.metadata;
+    const validator = BankSearchSchema.safeParse({
+      bank: message.trim(),
+    });
 
-  if (!validator.success) {
+    if (!validator.success) {
+      await sendText({
+        user,
+        text: `⚠️ Invalid options provided\n${zodErrorParser(validator)}`,
+      });
+      return;
+    }
+    const banks = await cache("banks", getBanks);
+    const items = banks.filter((bank) =>
+      bank.name.toLowerCase().startsWith(message.trim().toLowerCase()),
+    );
+    user.metadata = {
+      ...metadata,
+      banks: items,
+    };
+    user.state = "/accounts:banks:select";
+    await user.save();
+    const banksString = items
+      .map((bank, index) => `${index + 1} -  *${bank.name}*`)
+      .join("\n");
+
+    const text = `Select the bank you want to add an account to. Kindly pick "1" for the first option and so on:\n\n${banksString}`;
+
+    await sendInteractiveButtons({
+      user,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/accounts:add",
+          title: "Search again",
+        },
+        {
+          type: "REPLY",
+          id: "/menu",
+          title: "Back to menu",
+        },
+      ],
+      text,
+    });
+  } catch (e) {
     await sendText({
       user,
-      text: `⚠️ Invalid options provided\n${zodErrorParser(validator)}`,
+      text: `⚠️ An error occurred\n${errorParser(e)}`,
     });
-    return;
   }
-  const banks = await cache("banks", getBanks);
-  const items = banks.filter((bank) =>
-    bank.name.toLowerCase().startsWith(message.trim().toLowerCase()),
-  );
-  user.metadata = {
-    ...metadata,
-    banks: items,
-  };
-  user.state = "/accounts:banks:select";
-  await user.save();
-  const banksString = items
-    .map((bank, index) => `${index + 1} -  *${bank.name}*`)
-    .join("\n");
-
-  const text = `Select the bank you want to add an account to. Kindly pick "1" for the first option and so on:\n\n${banksString}`;
-
-  await sendInteractiveButtons({
-    user,
-    buttons: [
-      {
-        type: "REPLY",
-        id: "/accounts:add",
-        title: "Search again",
-      },
-      {
-        type: "REPLY",
-        id: "/menu",
-        title: "Back to menu",
-      },
-    ],
-    text,
-  });
 }
 
 async function handleBankSelect(user, message) {
