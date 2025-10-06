@@ -62,5 +62,4 @@ const CacheSchema = mongoose.Schema({
 });
 const User = mongoose.model("User", UserSchema);
 const Cache = mongoose.model("Cache", CacheSchema);
-
 module.exports = { User, Cache };

@@ -6,6 +6,7 @@ const {
   sendText,
   sendInteractiveButtons,
 } = require("../../../helpers/bot/infobip");
+const { removeCache } = require("../../common/cache");
 
 async function handleStartKyc(user, message) {
   user.state = "/kyc:bvn";
@@ -28,7 +29,6 @@ async function handleStartKyc(user, message) {
 }
 
 async function handleKycBVN(user, message) {
-  const metadata = user.metadata;
   const validator = KycSchema.safeParse(message);
 
   if (!validator.success) {
@@ -68,6 +68,7 @@ async function handleKycBVN(user, message) {
             },
           ],
     });
+    await removeCache(`profile_${user.metadata.userId}`);
 
     if (user.hasWallet) {
       user.state = "/menu";
@@ -80,7 +81,40 @@ async function handleKycBVN(user, message) {
   }
 }
 
+async function handleRefreshKyc(user, message) {
+  const profile = await BlokAxios({
+    url: "/profile",
+    params: {
+      user_id: user.metadata.userId,
+    },
+  }).then((res) => res.data);
+  await removeCache(`profile_${user.metadata.userId}`);
+  if (profile.is_bvn_verified) {
+    user.hasVerifiedKyc = true;
+    await user.save();
+    await sendText({
+      user,
+      text: "✅ Your KYC is verified",
+    });
+    return;
+  }
+  user.hasVerifiedKyc = false;
+  await user.save();
+  await sendInteractiveButtons({
+    user,
+    text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/kyc",
+        title: "Verify KYC",
+      },
+    ],
+  });
+}
+
 module.exports = {
   handleStartKyc,
   handleKycBVN,
+  handleRefreshKyc,
 };

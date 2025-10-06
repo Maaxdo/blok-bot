@@ -1,5 +1,6 @@
 const { Cache } = require("../../db/models");
 
+// Cache expiry time in milliseconds (7 days)
 const EXPIRY_TIME = 7 * 24 * 60 * 60 * 1000;
 
 async function cache(key, refetchFunc, expiresAt = EXPIRY_TIME) {
@@ -20,6 +21,13 @@ async function cache(key, refetchFunc, expiresAt = EXPIRY_TIME) {
   return savedCache.metadata;
 }
 
+async function removeCache(key) {
+  await Cache.deleteOne({
+    key,
+  });
+}
+
 module.exports = {
   cache,
+  removeCache,
 };

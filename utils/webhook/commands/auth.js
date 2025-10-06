@@ -273,6 +273,8 @@ async function handleRegistrationConfirm(user, message) {
       user,
       text: "Registration successful!\nType in a 4 digit pin to generate your wallet.",
     });
+    await removeCache(`profile_${res.user_id}`);
+
     await removeCommandExpiry(user);
   } catch (e) {
     logger.error(errorParser(e), e);
@@ -544,12 +546,14 @@ async function handleLogout(user) {
       },
     ],
   });
+  await removeCache(`profile_${user.metadata.userId}`);
   await refreshCommandExpiry(user, "/logout", 20);
 }
 
 async function handleLogoutConfirm(user, message) {
   user.metadata = null;
   user.state = "/start";
+  user.rememberedState = null;
   await user.save();
   await sendAuthPrompt(user);
   await removeCommandExpiry(user);

@@ -45,7 +45,7 @@ const {
   handleQuoteOptions,
   handleQuoteNetworksSelect,
 } = require("./wallet");
-const { handleStartKyc, handleKycBVN } = require("./kyc");
+const { handleStartKyc, handleKycBVN, handleRefreshKyc } = require("./kyc");
 const {
   handleAccounts,
   handleAccountAdd,
@@ -141,6 +141,10 @@ const commands = [
   {
     command: "/kyc",
     function: auth(handleStartKyc),
+  },
+  {
+    command: "/kyc:refresh",
+    function: auth(handleRefreshKyc),
   },
   {
     command: "/kyc:bvn",

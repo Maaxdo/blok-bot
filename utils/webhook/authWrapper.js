@@ -4,6 +4,7 @@ const {
   sendInteractiveButtons,
 } = require("../../helpers/bot/infobip");
 const { getTokens } = require("../common/wallet-options");
+const { cache } = require("../common/cache");
 
 function auth(func, checkKyc = false, checkWallet = false) {
   return async (user, message) => {
@@ -21,20 +22,29 @@ function auth(func, checkKyc = false, checkWallet = false) {
 
     const metadata = user.metadata;
 
-    const profile = await BlokAxios({
-      url: "/profile",
-      params: {
-        user_id: metadata.userId,
+    const profile = cache(
+      `profile_${metadata.userId}`,
+      async () => {
+        return await BlokAxios({
+          url: "/profile",
+          params: {
+            user_id: metadata.userId,
+          },
+        }).then((res) => res.data);
       },
-    }).then((res) => res.data);
+      30 * 60 * 1000,
+    );
 
-    if (profile.is_bvn_verified) {
+    if (checkKyc && profile.is_bvn_verified) {
       user.hasVerifiedKyc = true;
       await user.save();
       await func(user, message);
+      return;
     }
 
-    if (checkKyc && !user.hasVerifiedKyc) {
+    if (!profile.is_bvn_verified && checkKyc) {
+      user.hasVerifiedKyc = false;
+      await user.save();
       await sendInteractiveButtons({
         user,
         text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
@@ -47,12 +57,32 @@ function auth(func, checkKyc = false, checkWallet = false) {
           {
             type: "REPLY",
             id: "/kyc:refresh",
-            title: "Refresh KYC verification",
+            title: "Refresh KYC",
           },
         ],
       });
       return;
     }
+
+    // if (checkKyc && !user.hasVerifiedKyc) {
+    //   await sendInteractiveButtons({
+    //     user,
+    //     text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
+    //     buttons: [
+    //       {
+    //         type: "REPLY",
+    //         id: "/kyc",
+    //         title: "Verify KYC",
+    //       },
+    //       {
+    //         type: "REPLY",
+    //         id: "/kyc:refresh",
+    //         title: "Refresh KYC",
+    //       },
+    //     ],
+    //   });
+    //   return;
+    // }
     if (checkWallet && !user.hasWallet) {
       const wallets = await BlokAxios({
         url: "/wallet",

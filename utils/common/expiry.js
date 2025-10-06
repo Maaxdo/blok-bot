@@ -29,6 +29,7 @@ async function removeCommandExpiry(user) {
   user.expiryCommand = null;
   user.expiryCommandDatetime = null;
   user.state = "/menu";
+  user.rememberedState = null;
   await user.save();
 }
 
