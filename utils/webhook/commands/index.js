@@ -296,47 +296,47 @@ const commands = [
 
   {
     command: "/accounts",
-    function: auth(handleAccounts, false, true),
+    function: auth(handleAccounts, true, true),
   },
   {
     command: "/accounts:add",
-    function: auth(handleAccountAdd, false, true),
+    function: auth(handleAccountAdd, true, true),
   },
   {
     command: "/accounts:banks",
-    function: auth(handleBankOptions, false, true),
+    function: auth(handleBankOptions, true, true),
   },
   {
     command: "/accounts:add:number",
-    function: auth(handleAccountAddNumber, false, true),
+    function: auth(handleAccountAddNumber, true, true),
   },
   {
     command: "/accounts:add:cancel",
-    function: auth(handleAccountAddCancel, false, true),
+    function: auth(handleAccountAddCancel, true, true),
   },
   {
     command: "/accounts:add:confirm",
-    function: auth(handleAccountAddConfirm, false, true),
+    function: auth(handleAccountAddConfirm, true, true),
   },
   {
     command: "/accounts:banks:select",
-    function: auth(handleBankSelect, false, true),
+    function: auth(handleBankSelect, true, true),
   },
   {
     command: "/accounts:delete",
-    function: auth(handleAccountDelete, false, true),
+    function: auth(handleAccountDelete, true, true),
   },
   {
     command: "/accounts:delete:select",
-    function: auth(handleAccountDeleteSelect, false, true),
+    function: auth(handleAccountDeleteSelect, true, true),
   },
   {
     command: "/accounts:delete:cancel",
-    function: auth(handleAccountDeleteCancel, false, true),
+    function: auth(handleAccountDeleteCancel, true, true),
   },
   {
     command: "/accounts:delete:confirm",
-    function: auth(handleAccountDeleteConfirm, false, true),
+    function: auth(handleAccountDeleteConfirm, true, true),
   },
   {
     command: "/transactions",
