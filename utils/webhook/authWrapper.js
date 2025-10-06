@@ -1,5 +1,3 @@
-const { InfoBipAxios } = require("../../helpers/webhook/infobip");
-const { infobip } = require("../../config/app");
 const { BlokAxios } = require("../../helpers/webhook/blokbot");
 const {
   sendText,
@@ -14,21 +12,27 @@ function auth(func, checkKyc = false, checkWallet = false) {
           You are not logged in to your account. Please login to your account to continue:\n
           Use /login to login to your account or /register to register an account
           `;
-      await InfoBipAxios({
-        url: "/whatsapp/1/message/text",
-        method: "POST",
-        data: {
-          from: infobip.phone,
-          to: user.phone,
-          content: {
-            text: textBody,
-          },
-        },
+      await sendText({
+        user,
+        text: textBody,
       });
       return;
     }
 
     const metadata = user.metadata;
+    const profile = await BlokAxios({
+      url: "/profile",
+      params: {
+        user_id: metadata.userId,
+      },
+    }).then((res) => res.data);
+
+    if (profile.is_bvn_verified) {
+      user.hasVerifiedKyc = true;
+      await user.save();
+      await func(user, message);
+    }
+
     if (checkKyc && !user.hasVerifiedKyc) {
       await sendInteractiveButtons({
         user,
@@ -38,6 +42,11 @@ function auth(func, checkKyc = false, checkWallet = false) {
             type: "REPLY",
             id: "/kyc",
             title: "Verify KYC",
+          },
+          {
+            type: "REPLY",
+            id: "/kyc:refresh",
+            title: "Refresh KYC verification",
           },
         ],
       });
