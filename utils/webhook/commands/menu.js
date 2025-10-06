@@ -3,7 +3,7 @@ const { sendText } = require("../../../helpers/bot/infobip");
 const options = [
   {
     title: "💰 View your assets",
-    id: "/my-assets",
+    id: "/assets",
     nplMessage: 'or "I want to view my assets"',
   },
   {

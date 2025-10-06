@@ -65,16 +65,9 @@ async function handleAccounts(user, message) {
 }
 
 async function handleAccountAdd(user, message) {
-  await sendInteractiveButtons({
+  await sendText({
     user,
     text: "Enter the first three letters of the bank you want to add an account to",
-    buttons: [
-      {
-        type: "REPLY",
-        id: "/menu",
-        title: "Back to menu",
-      },
-    ],
   });
 
   user.state = "/accounts:banks";

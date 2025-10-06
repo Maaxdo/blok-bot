@@ -192,7 +192,7 @@ const commands = [
   //   function: auth(handleWithdrawOptions, false, false),
   // },
   {
-    command: "/my-assets",
+    command: "/assets",
     function: auth(handleAssets, true, true),
     nplMessage: "I want to view my assets",
   },
@@ -296,47 +296,47 @@ const commands = [
 
   {
     command: "/accounts",
-    function: auth(handleAccounts, true, true),
+    function: auth(handleAccounts, false, true),
   },
   {
     command: "/accounts:add",
-    function: auth(handleAccountAdd, true, true),
+    function: auth(handleAccountAdd, false, true),
   },
   {
     command: "/accounts:banks",
-    function: auth(handleBankOptions, true, true),
+    function: auth(handleBankOptions, false, true),
   },
   {
     command: "/accounts:add:number",
-    function: auth(handleAccountAddNumber, true, true),
+    function: auth(handleAccountAddNumber, false, true),
   },
   {
     command: "/accounts:add:cancel",
-    function: auth(handleAccountAddCancel, true, true),
+    function: auth(handleAccountAddCancel, false, true),
   },
   {
     command: "/accounts:add:confirm",
-    function: auth(handleAccountAddConfirm, true, true),
+    function: auth(handleAccountAddConfirm, false, true),
   },
   {
     command: "/accounts:banks:select",
-    function: auth(handleBankSelect, true, true),
+    function: auth(handleBankSelect, false, true),
   },
   {
     command: "/accounts:delete",
-    function: auth(handleAccountDelete, true, true),
+    function: auth(handleAccountDelete, false, true),
   },
   {
     command: "/accounts:delete:select",
-    function: auth(handleAccountDeleteSelect, true, true),
+    function: auth(handleAccountDeleteSelect, false, true),
   },
   {
     command: "/accounts:delete:cancel",
-    function: auth(handleAccountDeleteCancel, true, true),
+    function: auth(handleAccountDeleteCancel, false, true),
   },
   {
     command: "/accounts:delete:confirm",
-    function: auth(handleAccountDeleteConfirm, true, true),
+    function: auth(handleAccountDeleteConfirm, false, true),
   },
   {
     command: "/transactions",
