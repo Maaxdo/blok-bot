@@ -32,7 +32,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
           },
         }).then((res) => res.data);
       },
-      30 * 60 * 1000,
+      10 * 60 * 1000,
     );
 
     if (checkKyc && profile.is_bvn_verified) {
