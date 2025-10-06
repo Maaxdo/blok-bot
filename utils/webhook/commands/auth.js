@@ -554,7 +554,11 @@ async function handleLogoutConfirm(user, message) {
   user.metadata = null;
   user.state = "/start";
   user.rememberedState = null;
+  user.expiryCommand = null;
+  user.expiryCommandDatetime = null;
   await user.save();
+  await removeCommandExpiry(user);
+
   await sendInteractiveButtons({
     user,
     text: "👋 Welcome to Blok AI\nYour fast and secure way to manage and transact crypto.\n",
@@ -571,7 +575,6 @@ async function handleLogoutConfirm(user, message) {
       },
     ],
   });
-  await removeCommandExpiry(user);
 }
 
 async function handleLogoutCancel(user, message) {
