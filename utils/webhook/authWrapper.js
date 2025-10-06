@@ -22,29 +22,7 @@ function auth(func, checkKyc = false, checkWallet = false) {
 
     const metadata = user.metadata;
 
-    const profile = cache(
-      `profile_${metadata.userId}`,
-      async () => {
-        return await BlokAxios({
-          url: "/profile",
-          params: {
-            user_id: metadata.userId,
-          },
-        }).then((res) => res.data);
-      },
-      10 * 60 * 1000,
-    );
-
-    if (checkKyc && profile.is_bvn_verified) {
-      user.hasVerifiedKyc = true;
-      await user.save();
-      await func(user, message);
-      return;
-    }
-
-    if (!profile.is_bvn_verified && checkKyc) {
-      user.hasVerifiedKyc = false;
-      await user.save();
+    if (checkKyc && !user.hasVerifiedKyc) {
       await sendInteractiveButtons({
         user,
         text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
@@ -63,26 +41,6 @@ function auth(func, checkKyc = false, checkWallet = false) {
       });
       return;
     }
-
-    // if (checkKyc && !user.hasVerifiedKyc) {
-    //   await sendInteractiveButtons({
-    //     user,
-    //     text: "⚠️ *Your KYC is not verified*\nPlease complete your KYC to continue",
-    //     buttons: [
-    //       {
-    //         type: "REPLY",
-    //         id: "/kyc",
-    //         title: "Verify KYC",
-    //       },
-    //       {
-    //         type: "REPLY",
-    //         id: "/kyc:refresh",
-    //         title: "Refresh KYC",
-    //       },
-    //     ],
-    //   });
-    //   return;
-    // }
     if (checkWallet && !user.hasWallet) {
       const wallets = await BlokAxios({
         url: "/wallet",
