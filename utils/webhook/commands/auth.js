@@ -555,7 +555,22 @@ async function handleLogoutConfirm(user, message) {
   user.state = "/start";
   user.rememberedState = null;
   await user.save();
-  await sendAuthPrompt(user);
+  await sendInteractiveButtons({
+    user,
+    text: "👋 Welcome to Blok AI\nYour fast and secure way to manage and transact crypto.\n",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/register",
+        title: "Create an account",
+      },
+      {
+        type: "REPLY",
+        id: "/login",
+        title: "Login",
+      },
+    ],
+  });
   await removeCommandExpiry(user);
 }
 
