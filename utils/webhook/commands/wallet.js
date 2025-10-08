@@ -31,7 +31,7 @@ async function handleAssets(user, message) {
   const walletsInfo = wallets
     .map(
       (wallet) =>
-        `Wallet type 💲: *${wallet.wallet_type}*\nBalance 💰: *${wallet.balance}*\nAddress 📄: ${wallet.address}\nNetwork: ${wallet.network}`,
+        `Wallet type 💲: *${wallet.wallet_type}*\nBalance 💰: *${wallet.balance}*\nAddress 📄: ${wallet.address}\nNetwork 📄: ${wallet.network}`,
     )
     .join("\n\n");
 
