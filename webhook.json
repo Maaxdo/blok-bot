@@ -1,5 +1,5 @@
-{
-  "body": {
+[
+  {
     "event": "buy_success",
     "message": "Buy Complete! 4.9 USDT has been sent to your wallet Transaction hash: ff42e75cfb210d5845da...",
     "timestamp": "2025-09-03T18:12:07.337083",
@@ -14,7 +14,24 @@
     },
     "user_id": "687fab98f7ce16402771af38"
   },
-  "level": "info",
-  "message": "Received Fintava webhook",
-  "timestamp": "2025-09-03 18:12:07"
-}
+  {
+    "event": "customer_bank_transfer",
+    "data": {
+      "amount": 2925.1021799999994,
+      "vat": 0,
+      "reference": "862604c0-832e-45c8-aba5-3cfd0eea73d1",
+      "customerId": "2d161712-1ee0-41c3-8537-64c723a135e6",
+      "availableBalance": 0,
+      "bookedBalance": 0,
+      "status": "SUCCESS",
+      "total": 2955.85,
+      "description": "TRF SELL-83F3DF2E75A57AC6",
+      "destination": "8026028468/100004",
+      "sessionID": "100004251013132503168169940876",
+      "CustomerReference": "SELL-83F3DF2E75A57AC6",
+      "senderName": "Cupid Technologies",
+      "senderAccountNumber": "0053396402",
+      "charges": 30.75
+    }
+  }
+]
