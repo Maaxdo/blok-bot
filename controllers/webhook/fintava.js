@@ -6,7 +6,7 @@ async function handleFintavaWebhook(req, res) {
   const body = req.body;
 
   try {
-    if (body.event === "buy_success") {
+    if (body.event === "buy_success" || body.event === "sell_success") {
       const user = await User.findOne({
         "metadata.userId": body.user_id,
       });
@@ -18,21 +18,6 @@ async function handleFintavaWebhook(req, res) {
         user,
         text: `✅ ${body.message}`,
         // text: `✅ *Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`,
-      });
-      return res.status(200).send("EVENT_RECEIVED");
-    }
-
-    if (body.event === "sell_success") {
-      const user = await User.findOne({
-        "metadata.userId": body.user_id,
-      });
-      if (!user) {
-        return res.status(404).send("User not found");
-      }
-
-      await sendText({
-        user,
-        text: `✅ ${body.message}`,
       });
       return res.status(200).send("EVENT_RECEIVED");
     }
