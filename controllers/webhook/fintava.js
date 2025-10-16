@@ -13,10 +13,14 @@ async function handleFintavaWebhook(req, res) {
       if (!user) {
         return res.status(404).send("User not found");
       }
+      const message =
+        body.event === "buy_success"
+          ? `✅ Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`
+          : `✅ Sell complete*\n${body.transaction.amount} ${body.transaction.currency} has been sold from your wallet`;
 
       await sendText({
         user,
-        text: `✅ ${body.message}`,
+        text: message,
         // text: `✅ *Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`,
       });
       return res.status(200).send("EVENT_RECEIVED");
