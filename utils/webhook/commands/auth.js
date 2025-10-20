@@ -73,7 +73,7 @@ async function handleRegisterPrompt(user) {
     await user.save();
     await sendFlow({
       user,
-      text: "*Sign up*🚀\n Unlock new transaction perks with Blok AI!",
+      text: "*Sign up*🚀\n Unlock new transaction perks with Blok AI!\n\n*⚠NOTE:* The data provided should match your BVN details",
       action: {
         mode: "PUBLISHED",
         flowMessageVersion: 3,
@@ -414,9 +414,16 @@ async function handleViewProfile(user, message) {
 
     const body = `*Profile details*\n\nPhone number: ${profile.phone}\nEmail address: ${profile.email}\nFirst name: ${profile.first_name}\nLast name: ${profile.last_name}\nStatus: ${profile.status.replaceAll("_", " ").toUpperCase()}`;
 
-    await sendText({
+    await sendInteractiveButtons({
       user,
       text: body,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/profile:update",
+          title: "Edit profile",
+        },
+      ],
     });
   } catch (e) {
     console.log(user.phone, metadata.userId);

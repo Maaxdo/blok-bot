@@ -15,6 +15,10 @@ const {
   handleResetPasswordCode,
   handleResetPasswordEmail,
 } = require("./auth");
+const {
+  handleUpdateProfile,
+  handleUpdateProfileDetails,
+} = require("./profile");
 
 const { handleMenu } = require("./menu");
 const { auth } = require("../authWrapper");
@@ -67,6 +71,7 @@ const {
 } = require("./transactions");
 const { handleRates } = require("./rates");
 const { handleSupport } = require("./support");
+const { test } = require("./test");
 
 /**
  *
@@ -162,6 +167,10 @@ const commands = [
   {
     command: "/profile",
     function: auth(handleViewProfile),
+  },
+  {
+    command: "/test",
+    function: test,
   },
   {
     command: "/wallet:generate",
@@ -357,6 +366,14 @@ const commands = [
   {
     command: "/support",
     function: handleSupport,
+  },
+  {
+    command: "/profile:update",
+    function: auth(handleUpdateProfile),
+  },
+  {
+    command: "/profile:update:details",
+    function: auth(handleUpdateProfileDetails),
   },
 ];
 

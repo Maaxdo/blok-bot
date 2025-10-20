@@ -12,6 +12,13 @@ const errorParser = (error) => {
     }
 
     if (
+      "detail" in error.response?.data &&
+      Array.isArray(error.response?.data?.detail)
+    ) {
+      return error.response?.data?.detail[0].msg;
+    }
+
+    if (
       "message" in error.response?.data &&
       typeof error.response?.data?.message === "string"
     ) {
