@@ -45,7 +45,7 @@ async function handleAssets(user, message) {
 async function handleInitiateWalletGeneration(user, message) {
   await sendFlow({
     user,
-    text: "Create a secure Pin for your wallet 🔒",
+    text: 'Your wallet is ready! 🎉 Now, let\'s secure it with a PIN.\nClick on "CONTINUE" to create your 4-digit transaction PIN. 🔒\nThis keeps your wallet safe and only accessible to you. 🔒',
     action: {
       mode: "PUBLISHED",
       flowMessageVersion: 3,
