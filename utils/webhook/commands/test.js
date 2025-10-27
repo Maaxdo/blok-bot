@@ -3,7 +3,7 @@ const { sendFlow } = require("../../../helpers/bot/infobip");
 async function test(user, message) {
   await sendFlow({
     user,
-    text: 'Your wallet is ready! 🎉 Now, let\'s secure it with a PIN.\nClick on "CONTINUE" to create your 4-digit transaction PIN. 🔒\nThis keeps your wallet safe and only accessible to you. 🔒',
+    text: 'Your wallet is all set! 🎉\nTap "Continue" to create your 4-digit transaction PIN and start your Blok experience. 💜',
     action: {
       mode: "PUBLISHED",
       flowMessageVersion: 3,
