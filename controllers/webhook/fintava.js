@@ -6,29 +6,33 @@ async function handleFintavaWebhook(req, res) {
   const body = req.body;
 
   try {
-    if (body.event === "buy_success" || body.event === "sell_success") {
-      const user = await User.findOne({
-        "metadata.userId": body.user_id,
-      });
-      if (!user) {
-        return res.status(404).send("User not found");
-      }
-      const message =
-        body.event === "buy_success"
-          ? `✅ Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`
-          : `✅ Sell complete*\n${body.transaction.amount} ${body.transaction.currency} has been sold from your wallet`;
+    const allowedEvents = [
+      "buy_initiated",
+      "buy_success",
+      "buy_failed",
+      "sell_initiated",
+      "sell_success",
+      "sell_failed",
+      "customer_bank_transfer",
+    ];
 
-      await sendText({
-        user,
-        text: message,
-        // text: `✅ *Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`,
-      });
-      return res.status(200).send("EVENT_RECEIVED");
+    if (!body.event || !allowedEvents.includes(body.event)) {
+      return res.status(200).send("EVENT_RECEIVED: Invalid event");
     }
 
-    if (body.event === "customer_bank_transfer") {
+    const user = await User.findOne({
+      "metadata.userId": body.user_id,
+    });
+    if (!user) {
+      return res.status(404).send("User not found");
     }
-    return res.status(200).send("EVENT_RECEIVED: Invalid event");
+
+    await sendText({
+      user,
+      text: body.message,
+      // text: `✅ *Buy complete*\n${body.transaction.amount} ${body.transaction.currency} has been sent to your wallet`,
+    });
+    return res.status(200).send("EVENT_RECEIVED");
   } catch (err) {
     logger.error("Webhook Error", err);
     return res.status(500).json({ error: "Webhook Error", details: err });
