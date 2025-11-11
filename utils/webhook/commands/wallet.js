@@ -701,7 +701,7 @@ async function handleSellOptions(user, message) {
     }).then((res) => res.data);
     await sendInteractiveButtons({
       user,
-      text: `ℹ️ ${response.preview_message}\n\nAmount: ${response.currency} ${response.amount_crypto.toLocaleString()}\nAmount (USD): $ ${response.amount_usd.toLocaleString()}\nNaira amount: NGN ${response.naira_amount.toLocaleString()}\nGas fee: $ ${response.gas_fee_usd}\n\nClick 'Proceed' to continue or 'Cancel' to cancel the transaction`,
+      text: `ℹ️ ${response.preview_message}\n\nClick 'Proceed' to continue or 'Cancel' to cancel the transaction`,
       buttons: [
         {
           type: "REPLY",
