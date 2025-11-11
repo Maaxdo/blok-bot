@@ -291,27 +291,27 @@ const commands = [
     function: auth(handleSellNetworksSelect, true, true),
   },
 
-  {
-    command: "/quote",
-    function: auth(handleQuote, true, true),
-    nplMessage: "I want to get a quote",
-  },
-  {
-    command: "/quote:wallet:select",
-    function: auth(handleQuoteWalletSelect, true, true),
-  },
-  {
-    command: "/quote:account:select",
-    function: auth(handleQuoteAccountSelect, true, true),
-  },
-  {
-    command: "/quote:options",
-    function: auth(handleQuoteOptions, true, true),
-  },
-  {
-    command: "/quote:networks:select",
-    function: auth(handleQuoteNetworksSelect, true, true),
-  },
+  // {
+  //   command: "/quote",
+  //   function: auth(handleQuote, true, true),
+  //   nplMessage: "I want to get a quote",
+  // },
+  // {
+  //   command: "/quote:wallet:select",
+  //   function: auth(handleQuoteWalletSelect, true, true),
+  // },
+  // {
+  //   command: "/quote:account:select",
+  //   function: auth(handleQuoteAccountSelect, true, true),
+  // },
+  // {
+  //   command: "/quote:options",
+  //   function: auth(handleQuoteOptions, true, true),
+  // },
+  // {
+  //   command: "/quote:networks:select",
+  //   function: auth(handleQuoteNetworksSelect, true, true),
+  // },
 
   {
     command: "/accounts",
