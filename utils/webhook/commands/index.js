@@ -48,6 +48,8 @@ const {
   handleQuoteAccountSelect,
   handleQuoteOptions,
   handleQuoteNetworksSelect,
+  handleSellCancel,
+  handleSellConfirm,
 } = require("./wallet");
 const { handleStartKyc, handleKycBVN, handleRefreshKyc } = require("./kyc");
 const {
@@ -275,6 +277,14 @@ const commands = [
   {
     command: "/sell:options",
     function: auth(handleSellOptions, true, true),
+  },
+  {
+    command: "/sell:confirm",
+    function: auth(handleSellConfirm, true, true),
+  },
+  {
+    command: "/sell:cancel",
+    function: auth(handleSellCancel, true, true),
   },
   {
     command: "/sell:networks:select",

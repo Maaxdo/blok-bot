@@ -687,7 +687,7 @@ async function handleSellOptions(user, message) {
 
   try {
     const response = await BlokAxios({
-      url: "/crypto/sell/fintava",
+      url: "/crypto/sell/preview",
       method: "POST",
       data: {
         user_id: metadata.userId,
@@ -699,20 +699,30 @@ async function handleSellOptions(user, message) {
         pin: message.pin,
       },
     }).then((res) => res.data);
-    user.state = "/menu";
-    await user.save();
     await sendInteractiveButtons({
       user,
-      text: `ℹ️ Transaction ${response.transaction_status}, ${response.transfer_details.message}`,
+      text: `ℹ️ ${response.preview_message}\n\nAmount: ${response.currency} ${response.amount_crypto.toLocaleString()}\nAmount (USD): $ ${response.amount_usd.toLocaleString()}\nNaira amount: NGN ${response.naira_amount.toLocaleString()}\nGas fee: $ ${response.gas_fee_usd}\n\nClick 'Proceed' to continue or 'Cancel' to cancel the transaction`,
       buttons: [
         {
           type: "REPLY",
-          id: "/transactions",
-          title: "View transactions",
+          id: "/sell:confirm",
+          title: "Proceed",
+        },
+        {
+          type: "REPLY",
+          id: "/sell:cancel",
+          title: "Cancel",
         },
       ],
     });
-    await removeCommandExpiry(user);
+
+    user.state = "/menu";
+    user.metadata = {
+      ...metadata,
+      amount: message.amount,
+      pin: message.pin,
+    };
+    await user.save();
   } catch (e) {
     await sendFlow({
       user,
@@ -731,6 +741,67 @@ async function handleSellOptions(user, message) {
     });
     logger.error("Sell error", e);
   }
+}
+
+async function handleSellConfirm(user, message) {
+  try {
+    const metadata = user.metadata;
+
+    const response = await BlokAxios({
+      url: "/crypto/sell/fintava",
+      method: "POST",
+      data: {
+        user_id: metadata.userId,
+        wallet_type: metadata.wallet,
+        bank_account_id: metadata.selectedAccount.id,
+        currency: metadata.network,
+        network: metadata.network,
+        amount: metadata.amount,
+        pin: metadata.pin,
+      },
+    }).then((res) => res.data);
+    await sendInteractiveButtons({
+      user,
+      text: `ℹ️ Transaction ${response.transaction_status}, ${response.transfer_details.message}`,
+      buttons: [
+        {
+          type: "REPLY",
+          id: "/transactions",
+          title: "View transactions",
+        },
+      ],
+    });
+    user.state = "/menu";
+    await user.save();
+
+    await removeCommandExpiry(user);
+  } catch (err) {
+    logger.error("Sell error", err);
+    await removeCommandExpiry(user);
+    user.state = "/menu";
+    await user.save();
+    await sendText({
+      user,
+      text: `⚠️ An error occurred.\n${errorParser(err)}`,
+    });
+  }
+}
+
+async function handleSellCancel(user, message) {
+  user.state = "/menu";
+  await user.save();
+  await sendInteractiveButtons({
+    user,
+    text: "Transaction cancelled",
+    buttons: [
+      {
+        type: "REPLY",
+        id: "/menu",
+        title: "Back to menu",
+      },
+    ],
+  });
+  await removeCommandExpiry(user);
 }
 
 async function handleQuote(user, message) {
@@ -1141,6 +1212,8 @@ module.exports = {
   handleSellWalletSelect,
   handleSellAccountSelect,
   handleSellOptions,
+  handleSellConfirm,
+  handleSellCancel,
   handleSellNetworksSelect,
   handleBuyNetworksSelect,
   handleDestinationAddressPromptYes,
