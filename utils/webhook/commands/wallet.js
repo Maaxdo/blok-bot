@@ -721,6 +721,7 @@ async function handleSellOptions(user, message) {
       ...metadata,
       amount: message.amount,
       pin: message.pin,
+      nairaAmount: response.naira_amount,
     };
     await user.save();
   } catch (e) {
@@ -758,6 +759,7 @@ async function handleSellConfirm(user, message) {
         network: metadata.network,
         amount: metadata.amount,
         pin: metadata.pin,
+        naira_amount: metadata.nairaAmount,
       },
     }).then((res) => res.data);
     await sendInteractiveButtons({
